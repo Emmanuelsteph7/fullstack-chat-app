@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "main": "server.js",
   "license": "MIT",
+  "types": "dist/types/index.d.ts",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only ./src/server.ts",
     "build": "tsc",
