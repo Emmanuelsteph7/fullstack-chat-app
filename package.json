@@ -1,0 +1,14 @@
+{
+  "name": "chat-app",
+  "version": "0.0.1",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "backend:install": "yarn install --cwd backend",
+    "backend:build": "yarn --cwd backend run build",
+    "frontend:install": "yarn install --cwd frontend",
+    "frontend:build": "yarn --cwd frontend run build",
+    "build": "yarn backend:install && yarn backend:build && yarn frontend:install && yarn frontend:build",
+    "start": "yarn --cwd backend run start"
+  }
+}
