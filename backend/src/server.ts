@@ -12,7 +12,6 @@ import path from "path";
 config();
 
 const app = express();
-// const _dirname = path.resolve();
 
 generalConfig(app);
 cloudinaryConfig();
@@ -23,25 +22,12 @@ allRoutes(app);
 // Middleware to handle errors
 app.use(errorMiddleware);
 
-const distPath = path.join(__dirname, "../../frontend/dist");
-
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(distPath)));
-}
-
 // Handle unknown routes
 app.all("*", (req: Request, res: Response, next: NextFunction) => {
-  const url = req.url;
-  const isApiUrl = url.includes(API_PREFIX);
-
-  if (isApiUrl) {
-    const errMessage = `Route ${req.originalUrl} not found`;
-    const err = new Error(errMessage) as any;
-    err.statusCode = 404;
-    next(err);
-  } else {
-    res.sendFile(path.join(distPath, "index.html"));
-  }
+  const errMessage = `Route ${req.originalUrl} not found`;
+  const err = new Error(errMessage) as any;
+  err.statusCode = 404;
+  next(err);
 });
 
 /**

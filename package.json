@@ -4,11 +4,12 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "backend:install": "npm install --prefix backend",
-    "backend:build": "npm --prefix backend run build",
-    "frontend:install": "npm install --prefix frontend",
-    "frontend:build": "npm --prefix frontend run build",
-    "build": "npm run backend:install && npm run backend:build && npm run frontend:install && npm run frontend:build",
-    "start": "npm --prefix backend run start"
+    "backend:install": "yarn install --cwd backend",
+    "backend:build": "yarn --cwd backend run build",
+    "backend:dev": "yarn --cwd backend run dev",
+    "frontend:install": "yarn install --cwd frontend",
+    "frontend:build": "yarn --cwd frontend run build",
+    "frontend:dev": "yarn --cwd frontend run dev",
+    "start": "yarn --cwd backend run start"
   }
 }
