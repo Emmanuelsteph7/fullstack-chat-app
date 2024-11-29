@@ -119,7 +119,8 @@ export const logoutController = catchAsyncErrors(
     next: NextFunction
   ) => {
     try {
-      res.cookie(TOKEN_COOKIE_KEY, "", { maxAge: 0 });
+      // res.cookie(TOKEN_COOKIE_KEY, "", { maxAge: 0 });
+      sendCookie(res, "", 0);
 
       sendResponse({
         message: "Logout successful",
