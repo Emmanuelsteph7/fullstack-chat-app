@@ -8,7 +8,6 @@ import { generateToken } from "../utils/generateToken";
 import { sendCookie } from "../utils/sendCookie";
 import { sendResponse } from "../utils/sendResponse";
 import comparePassword from "../utils/comparePassword";
-import { TOKEN_COOKIE_KEY } from "../constants";
 
 export const signUpController = catchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -39,7 +38,6 @@ export const signUpController = catchAsyncErrors(
       });
 
       const token = generateToken(newUser._id as string);
-      sendCookie(res, token);
 
       sendResponse({
         message: "User created",
@@ -54,6 +52,7 @@ export const signUpController = catchAsyncErrors(
             createdAt: (newUser as any).createdAt,
             updatedAt: (newUser as any).updatedAt,
           },
+          token,
         },
       });
     } catch (error: any) {
@@ -90,7 +89,6 @@ export const loginController = catchAsyncErrors(
       }
 
       const token = generateToken(userWithThisEmail._id as string);
-      sendCookie(res, token);
 
       sendResponse({
         message: "Login successful",
@@ -104,6 +102,7 @@ export const loginController = catchAsyncErrors(
             createdAt: (userWithThisEmail as any).createdAt,
             updatedAt: (userWithThisEmail as any).updatedAt,
           },
+          token,
         },
       });
     } catch (error: any) {

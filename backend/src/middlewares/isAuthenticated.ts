@@ -1,7 +1,7 @@
 import { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
 import catchAsyncErrors from "./catchAsyncErrors";
-import { JWT_SECRET, TOKEN_COOKIE_KEY } from "../constants";
+import { JWT_SECRET } from "../constants";
 import ErrorHandler from "../utils/errorHandler";
 import { Api } from "../types";
 import UserModel from "../models/user.model";
@@ -13,7 +13,7 @@ const isAuthenticated = catchAsyncErrors(
     next: NextFunction
   ) => {
     try {
-      const token = req.cookies[TOKEN_COOKIE_KEY] as string;
+      const token = req?.headers?.authorization?.split(" ")?.[1];
 
       if (!token) {
         return next(

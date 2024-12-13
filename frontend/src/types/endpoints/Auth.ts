@@ -12,6 +12,7 @@ export namespace Auth {
     export interface Response extends General.SuccessResponse {
       data: {
         user: General.User;
+        token: string;
       };
     }
   }
@@ -25,6 +26,7 @@ export namespace Auth {
     export interface Response extends General.SuccessResponse {
       data: {
         user: General.User;
+        token: string;
       };
     }
   }

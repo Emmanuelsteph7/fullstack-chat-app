@@ -4,13 +4,10 @@ import {
   getUserProfileService,
   uploadPictureService,
 } from "../services/user-service";
-import {
-  loginService,
-  logoutService,
-  signUpService,
-} from "../services/auth-service";
+import { loginService, signUpService } from "../services/auth-service";
 import { toast } from "react-toastify";
 import { resolveAxiosError } from "../utils/resolveAxiosError";
+import { TOKEN_KEY } from "../constants";
 
 export interface IAuthStore {
   isAuthenticated: boolean;
@@ -20,6 +17,7 @@ export interface IAuthStore {
   isLogoutLoading: boolean;
   isLoginLoading: boolean;
   isUploadPictureLoading: boolean;
+  token: string | null;
 }
 
 interface IAuthStoreAction {
@@ -45,6 +43,7 @@ export const useAuthStore = create<IAuthStore & IAuthStoreAction>(
     isLogoutLoading: false,
     isLoginLoading: false,
     isUploadPictureLoading: false,
+    token: null,
     fetchProfile: async () => {
       try {
         const res = await getUserProfileService();
@@ -77,7 +76,9 @@ export const useAuthStore = create<IAuthStore & IAuthStoreAction>(
           isAuthenticated: true,
           isSignupLoading: false,
           profileData: res.data.user,
+          token: res.data.token,
         });
+        localStorage.setItem(TOKEN_KEY, res.data.token);
         toast.success("Sign up successful");
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
@@ -99,7 +100,9 @@ export const useAuthStore = create<IAuthStore & IAuthStoreAction>(
           isAuthenticated: true,
           isLoginLoading: false,
           profileData: res.data.user,
+          token: res.data.token,
         });
+        localStorage.setItem(TOKEN_KEY, res.data.token);
         toast.success("Sign up successful");
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
@@ -115,12 +118,13 @@ export const useAuthStore = create<IAuthStore & IAuthStoreAction>(
         set({
           isLogoutLoading: true,
         });
-        await logoutService();
+        localStorage.removeItem(TOKEN_KEY);
 
         set({
           isAuthenticated: false,
           isLogoutLoading: false,
           profileData: null,
+          token: null,
         });
         toast.success("Logout successful");
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
