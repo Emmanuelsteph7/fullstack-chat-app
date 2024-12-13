@@ -1,5 +1,10 @@
 import { Response } from "express";
-import { DURATION_7_DAYS, NODE_ENV, TOKEN_COOKIE_KEY } from "../constants";
+import {
+  DURATION_7_DAYS,
+  NODE_ENV,
+  TOKEN_COOKIE_KEY,
+  WEBSITE_ORIGIN,
+} from "../constants";
 
 export const sendCookie = (
   res: Response,
@@ -11,7 +16,8 @@ export const sendCookie = (
   res.cookie(TOKEN_COOKIE_KEY, token, {
     maxAge,
     httpOnly: true,
-    sameSite: "none",
+    sameSite: "lax",
     secure: !isDevelopment,
+    domain: WEBSITE_ORIGIN,
   });
 };
