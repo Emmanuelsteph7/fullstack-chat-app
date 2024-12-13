@@ -22,6 +22,6 @@ export const sendCookie = (
     httpOnly: true,
     sameSite: "none",
     secure: !isDevelopment,
-    domain: "localhost",
+    domain: formattedDomain,
   });
 };
