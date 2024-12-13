@@ -20,7 +20,7 @@ export const sendCookie = (
   res.cookie(TOKEN_COOKIE_KEY, token, {
     maxAge,
     httpOnly: true,
-    sameSite: "none",
+    sameSite: "lax",
     secure: !isDevelopment,
     domain: formattedDomain,
   });
