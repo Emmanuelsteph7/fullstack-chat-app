@@ -4,19 +4,19 @@ import { Navigate, Outlet } from "react-router-dom";
 import Navbar from "../../components/navbar";
 
 const ProtectedLayout = () => {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isGetProfileLoading } = useAuthStore();
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !isGetProfileLoading) {
     return <Navigate to={Path.Login} replace />;
   }
 
   return (
-    <>
+    <div className="bg-base-100">
       <Navbar />
       <main className="">
         <Outlet />
       </main>
-    </>
+    </div>
   );
 };
 

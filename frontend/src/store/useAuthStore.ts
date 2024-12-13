@@ -50,15 +50,20 @@ export const useAuthStore = create<IAuthStore & IAuthStoreAction>(
         const res = await getUserProfileService();
         set({
           isAuthenticated: true,
-          isGetProfileLoading: false,
           profileData: res.data.user,
         });
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
       } catch (error: any) {
         set({
           isAuthenticated: false,
-          isGetProfileLoading: false,
         });
+      } finally {
+        setTimeout(() => {
+          set({
+            isGetProfileLoading: false,
+          });
+        }, 1000);
       }
     },
     signup: async (payload: Api.Auth.SignUp.Request) => {

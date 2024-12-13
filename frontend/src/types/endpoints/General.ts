@@ -10,16 +10,29 @@ export namespace General {
     errMessage: string;
   }
 
+  export interface ImageObj {
+    public_id: string;
+    url: string;
+  }
+
   export interface User {
     _id: string;
     name: string;
     email: string;
     createdAt: string;
     updatedAt: string;
-    profilePic?: {
-      public_id: string;
-      url: string;
-    };
+    profilePic?: ImageObj;
+  }
+
+  export interface Message {
+    _id: string;
+    senderId: string;
+    receiverId: string;
+    text: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    image: ImageObj;
+    createdAt: string;
+    updatedAt: string;
   }
 
   export type LoadingStatus = "idle" | "loading" | "error" | "loaded";

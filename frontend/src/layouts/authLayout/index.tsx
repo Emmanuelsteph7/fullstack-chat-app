@@ -3,9 +3,9 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { Path } from "../../navigations/routes";
 
 const AuthLayout = () => {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isGetProfileLoading } = useAuthStore();
 
-  if (isAuthenticated) {
+  if (isAuthenticated && !isGetProfileLoading) {
     return <Navigate to={Path.Chat} replace />;
   }
 

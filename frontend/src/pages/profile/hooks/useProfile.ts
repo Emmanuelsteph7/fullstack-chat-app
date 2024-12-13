@@ -1,6 +1,7 @@
 import React from "react";
 import { useAuthStore } from "../../../store/useAuthStore";
 import { getInitials } from "../../../utils/getInitials";
+import { resolveFileReader } from "../../../utils/resolveFileReader";
 
 const useProfile = () => {
   const { profileData, isUploadPictureLoading, updatePicture } = useAuthStore();
@@ -14,13 +15,9 @@ const useProfile = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-
-    reader.readAsDataURL(file);
-    reader.onload = async () => {
-      const base64String = reader.result as string;
+    resolveFileReader(file, async (base64String) => {
       await updatePicture({ profilePic: base64String });
-    };
+    });
   };
 
   return {

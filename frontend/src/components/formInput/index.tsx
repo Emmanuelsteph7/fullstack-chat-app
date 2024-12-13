@@ -5,6 +5,7 @@ import { Eye, EyeClosed } from "lucide-react";
 interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   icon?: ReactNode;
+  removeMargin?: boolean;
 }
 
 const FormInput = ({
@@ -12,6 +13,7 @@ const FormInput = ({
   className,
   type = "text",
   icon,
+  removeMargin,
   ...otherProps
 }: Props) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -21,8 +23,12 @@ const FormInput = ({
 
   const isPassword = type === "password";
   return (
-    <label className="mb-3 block">
-      <span className="mb-1 inline-block">{label}</span>
+    <label
+      className={cs("block", {
+        "mb-3": !removeMargin,
+      })}
+    >
+      {label && <span className="mb-1 inline-block">{label}</span>}
       <div className="input input-bordered flex items-center gap-2">
         {icon && <span className="h-4 w-4 opacity-70">{icon}</span>}
         <input
