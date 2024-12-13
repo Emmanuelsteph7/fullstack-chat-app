@@ -1,9 +1,9 @@
 import { Response } from "express";
 import {
+  BACKEND_ORIGIN,
   DURATION_7_DAYS,
   NODE_ENV,
   TOKEN_COOKIE_KEY,
-  WEBSITE_ORIGIN,
 } from "../constants";
 import { removeProtocol } from "./removeProtocol";
 
@@ -15,7 +15,7 @@ export const sendCookie = (
   const isDevelopment = NODE_ENV === "development";
   const formattedDomain = isDevelopment
     ? "localhost"
-    : removeProtocol(WEBSITE_ORIGIN);
+    : removeProtocol(BACKEND_ORIGIN);
 
   res.cookie(TOKEN_COOKIE_KEY, token, {
     maxAge,

@@ -2,6 +2,7 @@ import { config } from "dotenv";
 config();
 
 export const WEBSITE_ORIGIN = process.env.WEBSITE_ORIGIN || "";
+export const BACKEND_ORIGIN = process.env.BACKEND_ORIGIN || "";
 export const API_PREFIX = "/api/v1/";
 export const NODE_ENV = process.env.NODE_ENV || "";
 
