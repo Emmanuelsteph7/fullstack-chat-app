@@ -1,7 +1,7 @@
 import axios from "axios";
 import { API_BASE_URL } from "../constants";
 
-const baseURL = API_BASE_URL;
+const baseURL = `${API_BASE_URL}/api/v1`;
 
 export const AxiosConfig = axios.create({
   baseURL,

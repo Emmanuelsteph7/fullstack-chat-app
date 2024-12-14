@@ -5,13 +5,11 @@ import errorMiddleware from "./middlewares/errors";
 import Logging from "./library/logs";
 import { generalConfig } from "./config/generalConfig";
 import { allRoutes } from "./config/allRoutes";
-import { API_PREFIX, PORT } from "./constants";
+import { PORT } from "./constants";
 import { cloudinaryConfig } from "./config/cloudinary";
-import path from "path";
+import { app, server } from "./config/socket";
 
 config();
-
-const app = express();
 
 generalConfig(app);
 cloudinaryConfig();
@@ -33,7 +31,7 @@ app.all("*", (req: Request, res: Response, next: NextFunction) => {
 /**
  * Create server
  */
-app.listen(PORT || 8000, () => {
+server.listen(PORT || 8000, () => {
   Logging.info(`Server started on port ${PORT}`);
   connectDB();
 });

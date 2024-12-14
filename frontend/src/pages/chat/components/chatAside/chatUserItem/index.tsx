@@ -4,6 +4,7 @@ import { useChatStore } from "../../../../../store/useChatStore";
 import { Api } from "../../../../../types";
 import { getInitials } from "../../../../../utils/getInitials";
 import cs from "classnames";
+import { useAuthStore } from "../../../../../store/useAuthStore";
 
 interface Props {
   user: Api.General.User;
@@ -16,6 +17,7 @@ const ChatUserItem = ({ user }: Props) => {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const { handleSelectedUser, selectedUser } = useChatStore();
+  const { onlineUsers } = useAuthStore();
 
   const handleClick = () => {
     handleSelectedUser(user);
@@ -25,6 +27,7 @@ const ChatUserItem = ({ user }: Props) => {
 
   const initials = getInitials(name);
   const isSelected = _id === selectedUser?._id;
+  const isOnline = onlineUsers.includes(_id);
 
   const msg = "This is a message from john doe about the football match";
   return (
@@ -39,12 +42,17 @@ const ChatUserItem = ({ user }: Props) => {
         }
       )}
     >
-      <Avatar
-        initials={initials}
-        size={50}
-        textSize={25}
-        src={profilePic?.url || ""}
-      />
+      <div className="relative">
+        <Avatar
+          initials={initials}
+          size={50}
+          textSize={25}
+          src={profilePic?.url || ""}
+        />
+        {isOnline && (
+          <div className="absolute bottom-0 right-0 bg-success w-3 h-3 rounded-full" />
+        )}
+      </div>
       <div className="w-[calc(100%-60px)]">
         <h6 className="font-semibold text-[16px] text-left capitalize">
           {name}

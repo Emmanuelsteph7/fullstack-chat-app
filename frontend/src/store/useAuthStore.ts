@@ -7,7 +7,9 @@ import {
 import { loginService, signUpService } from "../services/auth-service";
 import { toast } from "react-toastify";
 import { resolveAxiosError } from "../utils/resolveAxiosError";
-import { TOKEN_KEY } from "../constants";
+import { API_BASE_URL, TOKEN_KEY } from "../constants";
+import { io, Socket } from "socket.io-client";
+import { ONLINE_USERS } from "../constants/socket";
 
 export interface IAuthStore {
   isAuthenticated: boolean;
@@ -18,6 +20,9 @@ export interface IAuthStore {
   isLoginLoading: boolean;
   isUploadPictureLoading: boolean;
   token: string | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  socket: Socket<any> | null;
+  onlineUsers: string[];
 }
 
 interface IAuthStoreAction {
@@ -32,6 +37,8 @@ interface IAuthStoreAction {
       }
     | undefined
   >;
+  connectSocket: () => void;
+  disconnectSocket: () => void;
 }
 
 export const useAuthStore = create<IAuthStore & IAuthStoreAction>(
@@ -44,6 +51,8 @@ export const useAuthStore = create<IAuthStore & IAuthStoreAction>(
     isLoginLoading: false,
     isUploadPictureLoading: false,
     token: null,
+    socket: null,
+    onlineUsers: [],
     fetchProfile: async () => {
       try {
         const res = await getUserProfileService();
@@ -51,6 +60,7 @@ export const useAuthStore = create<IAuthStore & IAuthStoreAction>(
           isAuthenticated: true,
           profileData: res.data.user,
         });
+        get().connectSocket();
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
       } catch (error: any) {
@@ -78,6 +88,7 @@ export const useAuthStore = create<IAuthStore & IAuthStoreAction>(
           profileData: res.data.user,
           token: res.data.token,
         });
+        get().connectSocket();
         localStorage.setItem(TOKEN_KEY, res.data.token);
         toast.success("Sign up successful");
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -102,6 +113,7 @@ export const useAuthStore = create<IAuthStore & IAuthStoreAction>(
           profileData: res.data.user,
           token: res.data.token,
         });
+        get().connectSocket();
         localStorage.setItem(TOKEN_KEY, res.data.token);
         toast.success("Sign up successful");
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -110,6 +122,7 @@ export const useAuthStore = create<IAuthStore & IAuthStoreAction>(
           isAuthenticated: false,
           isLoginLoading: false,
         });
+        console.log({ error });
         toast.error(resolveAxiosError(error));
       }
     },
@@ -126,6 +139,7 @@ export const useAuthStore = create<IAuthStore & IAuthStoreAction>(
           profileData: null,
           token: null,
         });
+        get().disconnectSocket();
         toast.success("Logout successful");
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
@@ -160,6 +174,32 @@ export const useAuthStore = create<IAuthStore & IAuthStoreAction>(
           isUploadPictureLoading: false,
         });
         toast.error(resolveAxiosError(error));
+      }
+    },
+    connectSocket: () => {
+      const { profileData, socket } = get();
+      if (!profileData || socket?.connected) return;
+
+      const socketInstance = io(API_BASE_URL, {
+        query: {
+          userId: profileData._id,
+        },
+      });
+      socketInstance.connect();
+      set({
+        socket: socketInstance,
+      });
+
+      socketInstance?.on(ONLINE_USERS, (userIds: string[]) => {
+        console.log({ userIds });
+        set({ onlineUsers: userIds });
+      });
+    },
+    disconnectSocket: () => {
+      const { socket } = get();
+
+      if (socket?.connected) {
+        socket.disconnect();
       }
     },
   })
