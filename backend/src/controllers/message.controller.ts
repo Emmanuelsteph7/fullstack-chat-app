@@ -7,6 +7,8 @@ import UserModel from "../models/user.model";
 import { sendResponse } from "../utils/sendResponse";
 import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
 import { CLOUDINARY_CHAT_PICTURES_FOLDER } from "../constants";
+import { getReceiverSocketId, io } from "../config/socket";
+import { NEW_MESSAGE } from "../constants/socket";
 
 export const getMessageUsersController = catchAsyncErrors(
   async (
@@ -94,6 +96,11 @@ export const sendMessageController = catchAsyncErrors(
               }
             : null,
       });
+
+      const receiverSocketId = getReceiverSocketId(receiverId);
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit(NEW_MESSAGE, message);
+      }
 
       sendResponse({
         message: "Message sent successfully",

@@ -13,6 +13,11 @@ const io = new Server(server, {
 
 const onlineUsers: Record<string, string> = {};
 
+export const getReceiverSocketId = (id: string | undefined) => {
+  if (!id) return;
+  return onlineUsers[id];
+};
+
 io.on("connection", (socket) => {
   const userId = socket.handshake.query.userId as string | undefined;
   if (userId) {

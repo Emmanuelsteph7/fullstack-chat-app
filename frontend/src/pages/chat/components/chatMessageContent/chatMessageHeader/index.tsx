@@ -23,7 +23,7 @@ const ChatMessageHeader = () => {
           <h3 className="capitalize text-[26px] font-semibold">
             {selectedUser?.name}
           </h3>
-          <p className="text-[12px]">{isOnline ? "Online" : ""}</p>
+          <p className="text-[12px]">{isOnline ? "Online" : "Offline"}</p>
         </div>
       </div>
       <div className="flex items-center gap-5">

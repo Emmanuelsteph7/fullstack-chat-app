@@ -6,9 +6,7 @@ import { useAuthStore } from "./store/useAuthStore";
 
 const App = () => {
   const { theme } = useThemeStore();
-  const { logout, onlineUsers } = useAuthStore();
-
-  console.log({ onlineUsers });
+  const { logout } = useAuthStore();
 
   configureInterceptor(() => logout());
 

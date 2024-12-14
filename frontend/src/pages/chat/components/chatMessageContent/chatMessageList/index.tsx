@@ -1,23 +1,39 @@
 import { useSearchParams } from "react-router-dom";
 import { useChatStore } from "../../../../../store/useChatStore";
 import ChatSingleMessage from "../chatSingleMessage";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { CHAT_QUERY_KEY } from "../../chatAside/chatUserItem";
 import Loader from "../../../../../components/loader";
 import ChatEmptyMessage from "../chatEmptyMessage";
 
 const ChatMessageList = () => {
+  const messageBottomRef = useRef<HTMLDivElement>(null);
+
   const [searchParams] = useSearchParams();
-  const { messages, getMessages, isMessagesLoading } = useChatStore();
+  const {
+    messages,
+    getMessages,
+    isMessagesLoading,
+    subscribeToMessages,
+    unsubscribeFromMessages,
+  } = useChatStore();
 
   const receiverId = searchParams.get(CHAT_QUERY_KEY);
 
   useEffect(() => {
+    if (messageBottomRef?.current && messages.length) {
+      messageBottomRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
+  useEffect(() => {
     if (receiverId) {
       getMessages({ receiverId });
+      subscribeToMessages();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [receiverId]);
+
+    return () => unsubscribeFromMessages();
+  }, [getMessages, receiverId, subscribeToMessages, unsubscribeFromMessages]);
 
   return (
     <div className="flex-1 px-10 relative overflow-y-auto">
@@ -31,9 +47,12 @@ const ChatMessageList = () => {
       {!isMessagesLoading && (
         <>
           {messages.length ? (
-            messages.map((message) => (
-              <ChatSingleMessage key={message._id} message={message} />
-            ))
+            <div>
+              {messages.map((message) => (
+                <ChatSingleMessage key={message._id} message={message} />
+              ))}
+              <div ref={messageBottomRef} />
+            </div>
           ) : (
             <ChatEmptyMessage
               header="No message yet"

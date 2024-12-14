@@ -191,7 +191,6 @@ export const useAuthStore = create<IAuthStore & IAuthStoreAction>(
       });
 
       socketInstance?.on(ONLINE_USERS, (userIds: string[]) => {
-        console.log({ userIds });
         set({ onlineUsers: userIds });
       });
     },
