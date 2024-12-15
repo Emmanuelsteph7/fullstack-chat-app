@@ -5,9 +5,9 @@ import ErrorHandler from "../utils/errorHandler";
 import UserModel from "../models/user.model";
 import hashPassword from "../utils/hashPassword";
 import { generateToken } from "../utils/generateToken";
-import { sendCookie } from "../utils/sendCookie";
 import { sendResponse } from "../utils/sendResponse";
 import comparePassword from "../utils/comparePassword";
+import { disconnectSocket } from "../config/socket";
 
 export const signUpController = catchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -118,8 +118,7 @@ export const logoutController = catchAsyncErrors(
     next: NextFunction
   ) => {
     try {
-      // res.cookie(TOKEN_COOKIE_KEY, "", { maxAge: 0 });
-      sendCookie(res, "", 0);
+      disconnectSocket(req.user?._id as string);
 
       sendResponse({
         message: "Logout successful",

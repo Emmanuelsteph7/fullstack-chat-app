@@ -7,8 +7,6 @@ import {
   getMessageUsersService,
   sendMessageService,
 } from "../services/message-service";
-import { useAuthStore } from "./useAuthStore";
-import { NEW_MESSAGE } from "../constants/socket";
 
 export interface IAuthStore {
   messages: Api.General.Message[];
@@ -25,8 +23,6 @@ interface IAuthStoreAction {
   handleSelectedUser: (user: Api.General.User) => void;
   handleSelectedUserById: (id: string) => void;
   sendMessage: (payload: Api.Message.SendMessage.Request) => Promise<void>;
-  subscribeToMessages: () => void;
-  unsubscribeFromMessages: () => void;
 }
 
 export const useChatStore = create<IAuthStore & IAuthStoreAction>(
@@ -97,24 +93,6 @@ export const useChatStore = create<IAuthStore & IAuthStoreAction>(
       } finally {
         set({ isSendMessageLoading: false });
       }
-    },
-    subscribeToMessages: () => {
-      const { selectedUser } = get();
-      if (!selectedUser) return;
-
-      const { socket } = useAuthStore.getState();
-      socket?.on(NEW_MESSAGE, (message: Api.General.Message) => {
-        if (message.senderId !== selectedUser._id) return;
-
-        const { messages } = get();
-        set({
-          messages: [...messages, message],
-        });
-      });
-    },
-    unsubscribeFromMessages: () => {
-      const { socket } = useAuthStore.getState();
-      socket?.off(NEW_MESSAGE);
     },
   })
 );

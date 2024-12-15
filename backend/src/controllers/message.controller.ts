@@ -8,7 +8,7 @@ import { sendResponse } from "../utils/sendResponse";
 import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
 import { CLOUDINARY_CHAT_PICTURES_FOLDER } from "../constants";
 import { getReceiverSocketId, io } from "../config/socket";
-import { NEW_MESSAGE } from "../constants/socket";
+import { MESSAGE_DELIVERED, NEW_MESSAGE } from "../constants/socket";
 
 export const getMessageUsersController = catchAsyncErrors(
   async (
@@ -98,8 +98,11 @@ export const sendMessageController = catchAsyncErrors(
       });
 
       const receiverSocketId = getReceiverSocketId(receiverId);
+
+      // This means that the receiver is online
       if (receiverSocketId) {
         io.to(receiverSocketId).emit(NEW_MESSAGE, message);
+        console.log({ receiverSocketId, receiverId }, "message sent");
       }
 
       sendResponse({

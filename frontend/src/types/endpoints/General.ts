@@ -24,13 +24,15 @@ export namespace General {
     profilePic?: ImageObj;
   }
 
+  export type MessageStatus = "sent" | "delivered" | "read";
+
   export interface Message {
     _id: string;
     senderId: string;
     receiverId: string;
     text: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     image: ImageObj;
+    status: MessageStatus;
     createdAt: string;
     updatedAt: string;
   }

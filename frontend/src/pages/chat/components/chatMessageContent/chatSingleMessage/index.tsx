@@ -4,14 +4,15 @@ import { useAuthStore } from "../../../../../store/useAuthStore";
 import { useChatStore } from "../../../../../store/useChatStore";
 import Avatar from "../../../../../components/avatar";
 import { getInitials } from "../../../../../utils/getInitials";
-import { formatDate } from "../../../utils/formatDate";
+import { formatTime } from "../../../utils/formatTime";
+import { Check, CheckCheck } from "lucide-react";
 
 interface Props {
   message: Api.General.Message;
 }
 
 const ChatSingleMessage = ({ message }: Props) => {
-  const { image, text, createdAt, senderId } = message;
+  const { image, text, createdAt, senderId, status } = message;
 
   const { profileData } = useAuthStore();
   const { selectedUser } = useChatStore();
@@ -27,22 +28,33 @@ const ChatSingleMessage = ({ message }: Props) => {
       })}
     >
       <div className="chat-image avatar">
-        <div className="w-10 rounded-full">
+        <div className="rounded-full">
           <Avatar
             initials={getInitials(chatUser?.name || "")}
             src={chatUser?.profilePic?.url || ""}
+            textSize={14}
           />
         </div>
       </div>
-      <div className="chat-header">
-        {chatUser?.name}
-        <time className="text-xs ml-1 opacity-50">{formatDate(createdAt)}</time>
-      </div>
-      <div className="chat-bubble">
-        {image && <img src={image.url} className="max-w-[200px]" />}
+      <div className="chat-header text-[12px] opacity-50">{chatUser?.name}</div>
+      <div
+        className={cs("chat-bubble", {
+          "chat-bubble-info": !isSender,
+          "": isSender,
+        })}
+      >
+        {image && <img src={image.url} className="max-w-[200px] mb-1" />}
         <span>{text}</span>
       </div>
-      <div className="chat-footer opacity-50">Delivered</div>
+      <div className="chat-footer flex items-center text-[12px] opacity-50">
+        {isSender && (
+          <span className="capitalize flex items-center">
+            {status} {status === "sent" && <Check size={12} />}{" "}
+            {status === "delivered" && <CheckCheck size={12} />}
+          </span>
+        )}
+        <time className="text-xs ml-1 opacity-50">{formatTime(createdAt)}</time>
+      </div>
     </div>
   );
 };

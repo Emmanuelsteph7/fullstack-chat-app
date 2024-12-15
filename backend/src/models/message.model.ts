@@ -21,6 +21,11 @@ const messageSchema: Schema = new Schema(
       public_id: String,
       url: String,
     },
+    status: {
+      type: String,
+      enum: ["sent", "delivered", "read"],
+      default: "sent",
+    },
   },
   {
     // This will add created at and updated at timestamps

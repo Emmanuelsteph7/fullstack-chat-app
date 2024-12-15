@@ -12,7 +12,7 @@ const ChatMessageHeader = () => {
 
   const initials = getInitials(selectedUser?.name);
   return (
-    <div className="flex items-center px-10 pt-2 pb-5 justify-between">
+    <div className="flex items-center shadow shadow-base-200 px-10 pt-2 bg-base-200/50 pb-5 justify-between">
       <div className="flex items-center gap-3">
         <Avatar
           size={35}
@@ -23,7 +23,9 @@ const ChatMessageHeader = () => {
           <h3 className="capitalize text-[26px] font-semibold">
             {selectedUser?.name}
           </h3>
-          <p className="text-[12px]">{isOnline ? "Online" : "Offline"}</p>
+          <p className="text-[12px] opacity-60">
+            {isOnline ? "Online" : "Offline"}
+          </p>
         </div>
       </div>
       <div className="flex items-center gap-5">
