@@ -12,10 +12,10 @@ const Settings = () => {
       <Navbar />
       <div className="pt-24 pb-16 min-h-screen">
         <Container>
-          <div className="w-full max-w-[1000px] mx-auto rounded-lg px-6 py-6">
+          <div className="w-full max-w-[1000px] mx-auto rounded-lg lg:px-6 lg:py-6">
             <h2 className="mb-1 text-[24px] font-semibold">Theme</h2>
             <p className="mb-8">Choose a theme for your chat interface</p>
-            <div className="grid grid-cols-8 gap-5">
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-5">
               {THEME.map((t) => (
                 <div className="relative rounded-lg" data-theme={t}>
                   {theme === t && (

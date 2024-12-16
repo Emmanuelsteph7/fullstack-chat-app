@@ -21,7 +21,7 @@ const ChatMessageList = () => {
 
   useEffect(() => {
     if (messageBottomRef?.current && messages.length) {
-      messageBottomRef.current.scrollIntoView({ behavior: "smooth" });
+      messageBottomRef.current.scrollIntoView({ behavior: "instant" });
     }
   }, [messages]);
 

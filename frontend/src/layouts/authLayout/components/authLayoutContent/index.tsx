@@ -21,8 +21,8 @@ const AuthLayoutContent = ({
   return (
     <>
       <Navbar />
-      <div className="h-screen flex">
-        <div className="flex-1 h-full flex items-center">
+      <div className="min-h-screen md:h-screen flex">
+        <div className="flex-1 px-5 py-20 lg:py-0 lg:px-0 h-full flex items-center">
           <div className="w-full mx-auto max-w-[400px]">
             <AuthHeading header={header} subHeader={subHeader} />
             {children}

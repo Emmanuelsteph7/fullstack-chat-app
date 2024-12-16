@@ -18,7 +18,7 @@ const Navbar = () => {
   const homePath = isAuthenticated ? Path.Chat : Path.Login;
 
   return (
-    <div className="fixed w-full top-0 left-0 py-3 z-10">
+    <div className="fixed w-full top-0 left-0 bg-base-100 lg:bg-transparent py-3 z-10">
       <Container
         variant="fluid"
         className="flex items-center justify-between mx-auto"

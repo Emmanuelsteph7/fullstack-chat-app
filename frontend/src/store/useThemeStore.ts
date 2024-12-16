@@ -10,7 +10,7 @@ interface IThemeStoreAction {
 }
 
 export const useThemeStore = create<IThemeStore & IThemeStoreAction>((set) => ({
-  theme: localStorage.getItem(THEME_STORAGE_KEY) || "coffee",
+  theme: localStorage.getItem(THEME_STORAGE_KEY) || "wireframe",
   setTheme: (theme) => {
     localStorage.setItem(THEME_STORAGE_KEY, theme);
     set({ theme });

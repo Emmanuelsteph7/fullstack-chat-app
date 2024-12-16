@@ -7,8 +7,8 @@ interface Props {
 
 const AuthSquareBoxes = ({ paragraph, title }: Props) => {
   return (
-    <div className="flex-1 h-full flex items-center bg-base-200">
-      <div className="max-w-[400px] mx-auto">
+    <div className="hidden flex-1 h-full lg:flex items-center bg-base-200">
+      <div className="max-w-[300px] xl:max-w-[400px] mx-auto">
         <div className="grid grid-cols-3 mb-4 gap-2">
           {[...Array(9)].map((_, index) => (
             <div
