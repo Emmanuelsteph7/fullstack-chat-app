@@ -16,7 +16,7 @@ const ChatUserItem = ({ user }: Props) => {
   const { name, profilePic, _id } = user;
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const { handleSelectedUser, selectedUser } = useChatStore();
+  const { handleSelectedUser, selectedUser, typingUsers } = useChatStore();
   const { onlineUsers } = useAuthStore();
 
   const handleClick = () => {
@@ -28,6 +28,7 @@ const ChatUserItem = ({ user }: Props) => {
   const initials = getInitials(name);
   const isSelected = _id === selectedUser?._id;
   const isOnline = onlineUsers.includes(_id);
+  const isUserTyping = typingUsers.includes(_id);
 
   const msg = "This is a message from john doe about the football match";
   return (
@@ -58,7 +59,8 @@ const ChatUserItem = ({ user }: Props) => {
           {name}
         </h6>
         <p className="truncate text-[12px] w-full text-left" title={msg}>
-          {msg}
+          {isUserTyping && <span className="text-primary">Typing...</span>}
+          {!isUserTyping && msg}
         </p>
       </div>
     </button>

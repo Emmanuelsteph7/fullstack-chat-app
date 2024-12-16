@@ -39,7 +39,6 @@ const isAuthenticated = catchAsyncErrors(
 
       next();
     } catch (error: any) {
-      console.log({ error }, "isAuth catch error");
       return next(new ErrorHandler(error?.message || "Invalid token", 401));
     }
   }

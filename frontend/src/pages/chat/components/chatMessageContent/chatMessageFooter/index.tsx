@@ -5,18 +5,33 @@ import { useChatStore } from "../../../../../store/useChatStore";
 import { useSearchParams } from "react-router-dom";
 import { CHAT_QUERY_KEY } from "../../chatAside/chatUserItem";
 import { resolveFileReader } from "../../../../../utils/resolveFileReader";
+import { useSocketStore } from "../../../../../store/useSocketStore";
 
 const ChatMessageFooter = () => {
   const [message, setMessage] = useState("");
   const [imageBase64, setImageBase64] = useState("");
 
   const [searchParams] = useSearchParams();
-  const { sendMessage, isSendMessageLoading, selectedUser } = useChatStore();
+  const { sendMessage, isSendMessageLoading, selectedUser, typingUsers } =
+    useChatStore();
+  const { emitTypingEvent, emitTypingStopEvent } = useSocketStore();
 
   const receiverId = searchParams.get(CHAT_QUERY_KEY);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setMessage(e.target.value);
+    const value = e.target.value;
+
+    setMessage(value);
+
+    if (value) {
+      emitTypingEvent();
+    } else {
+      emitTypingStopEvent();
+    }
+  };
+
+  const handleBlur = () => {
+    emitTypingStopEvent();
   };
 
   const handleSelectImage = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,8 +64,15 @@ const ChatMessageFooter = () => {
     } catch (error) {}
   };
 
+  const isUserTyping = typingUsers.includes(selectedUser?._id || "");
+
   return (
     <div className="py-3 px-10 bg-base-200/50">
+      {isUserTyping && (
+        <p className="text-[12px] text-primary mb-1">
+          {selectedUser?.name} Typing...
+        </p>
+      )}
       {imageBase64 && (
         <div className="relative bg-primary-content/10 rounded-2xl w-[100px] h-[100px]">
           <button
@@ -73,6 +95,7 @@ const ChatMessageFooter = () => {
             placeholder="Type a message..."
             onChange={handleChange}
             value={message}
+            onBlur={handleBlur}
           />
         </div>
         <label className="cursor-pointer">

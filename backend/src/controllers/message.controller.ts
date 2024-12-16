@@ -102,7 +102,6 @@ export const sendMessageController = catchAsyncErrors(
       // This means that the receiver is online
       if (receiverSocketId) {
         io.to(receiverSocketId).emit(NEW_MESSAGE, message);
-        console.log({ receiverSocketId, receiverId }, "message sent");
       }
 
       sendResponse({

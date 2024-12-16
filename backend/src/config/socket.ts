@@ -6,6 +6,9 @@ import {
   MESSAGE_DELIVERED,
   MESSAGE_DELIVERED_ACKNOWLEDGED,
   ONLINE_USERS,
+  TYPING_MESSAGE,
+  TYPING_MESSAGE_STOP,
+  TYPING_USERS,
 } from "../constants/socket";
 import MessageModel from "../models/message.model";
 import { isDBConnected } from "./mongoDb";
@@ -18,6 +21,7 @@ const io = new Server(server, {
 });
 
 const onlineUsers: Record<string, string> = {};
+const typingUsers: Record<string, string[]> = {};
 
 export const getReceiverSocketId = (id: string | undefined) => {
   if (!id) return;
@@ -32,13 +36,10 @@ export const getSocketId = (id: string | undefined) => {
 export const disconnectSocket = (id: string | undefined) => {
   const socketId = getSocketId(id);
 
-  console.log({ id, socketId, onlineUsers });
-
   if (socketId && id) {
     const socket = io.sockets.sockets.get(socketId);
     socket?.disconnect(true);
     delete onlineUsers[id];
-    console.log({ onlineUsers });
     io.emit(ONLINE_USERS, Object.keys(onlineUsers));
   }
 };
@@ -96,6 +97,43 @@ io.on("connection", async (socket) => {
       );
     }
   });
+
+  socket.on(
+    TYPING_MESSAGE,
+    async ({ receiver, sender }: { sender: string; receiver: string }) => {
+      const receiverTypingUsers = typingUsers[receiver] || [];
+      const isSenderTyping = receiverTypingUsers.includes(sender);
+
+      if (!isSenderTyping) {
+        typingUsers[receiver] = [...receiverTypingUsers, sender];
+      }
+
+      const receiverSocketId = getSocketId(receiver);
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit(TYPING_USERS, typingUsers[receiver]);
+      }
+    }
+  );
+
+  socket.on(
+    TYPING_MESSAGE_STOP,
+    async ({ receiver, sender }: { sender: string; receiver: string }) => {
+      const receiverTypingUsers = typingUsers[receiver] || [];
+      const senderIdIndex = receiverTypingUsers.findIndex(
+        (id) => id === sender
+      );
+
+      if (senderIdIndex > -1) {
+        receiverTypingUsers.splice(senderIdIndex, 1);
+        typingUsers[receiver] = receiverTypingUsers;
+      }
+
+      const receiverSocketId = getSocketId(receiver);
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit(TYPING_USERS, typingUsers[receiver]);
+      }
+    }
+  );
 
   socket.on("disconnect", () => {
     if (userId) {

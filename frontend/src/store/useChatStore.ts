@@ -7,6 +7,7 @@ import {
   getMessageUsersService,
   sendMessageService,
 } from "../services/message-service";
+import { useSocketStore } from "./useSocketStore";
 
 export interface IAuthStore {
   messages: Api.General.Message[];
@@ -15,6 +16,7 @@ export interface IAuthStore {
   isMessageUsersLoading: boolean;
   isMessagesLoading: boolean;
   isSendMessageLoading: boolean;
+  typingUsers: string[];
 }
 
 interface IAuthStoreAction {
@@ -33,6 +35,7 @@ export const useChatStore = create<IAuthStore & IAuthStoreAction>(
     isMessageUsersLoading: false,
     isMessagesLoading: false,
     isSendMessageLoading: false,
+    typingUsers: [],
     getMessageUsers: async () => {
       try {
         set({ isMessageUsersLoading: true });
@@ -82,6 +85,9 @@ export const useChatStore = create<IAuthStore & IAuthStoreAction>(
       try {
         set({ isSendMessageLoading: true });
         const res = await sendMessageService(payload);
+
+        const { emitTypingStopEvent } = useSocketStore.getState();
+        emitTypingStopEvent();
 
         const { messages = [] } = get();
         set({

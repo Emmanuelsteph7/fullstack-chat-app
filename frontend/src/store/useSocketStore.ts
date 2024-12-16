@@ -6,6 +6,9 @@ import {
   MESSAGE_DELIVERED_ACKNOWLEDGED,
   NEW_MESSAGE,
   ONLINE_USERS,
+  TYPING_MESSAGE,
+  TYPING_MESSAGE_STOP,
+  TYPING_USERS,
 } from "../constants/socket";
 import { useAuthStore } from "./useAuthStore";
 import { Api } from "../types";
@@ -21,6 +24,8 @@ interface ISocketStoreAction {
   disconnectSocket: () => void;
   socketSubscriptions: () => void;
   unsubscribeFromSocket: () => void;
+  emitTypingEvent: () => void;
+  emitTypingStopEvent: () => void;
 }
 
 export const useSocketStore = create<ISocketStore & ISocketStoreAction>(
@@ -91,10 +96,36 @@ export const useSocketStore = create<ISocketStore & ISocketStoreAction>(
           }
         }
       );
+
+      socket?.on(TYPING_USERS, (typingUsers: string[]) => {
+        useChatStore.setState({
+          typingUsers,
+        });
+      });
     },
     unsubscribeFromSocket: () => {
       const { socket } = get();
       socket?.off(NEW_MESSAGE);
+    },
+    emitTypingEvent: () => {
+      const { socket } = get();
+
+      const { profileData } = useAuthStore.getState();
+      const { selectedUser } = useChatStore.getState();
+      socket?.emit(TYPING_MESSAGE, {
+        sender: profileData?._id,
+        receiver: selectedUser?._id,
+      });
+    },
+    emitTypingStopEvent: () => {
+      const { socket } = get();
+
+      const { profileData } = useAuthStore.getState();
+      const { selectedUser } = useChatStore.getState();
+      socket?.emit(TYPING_MESSAGE_STOP, {
+        sender: profileData?._id,
+        receiver: selectedUser?._id,
+      });
     },
   })
 );
