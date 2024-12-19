@@ -13,7 +13,7 @@ const ChatSideUsers = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
-    <div className="flex overflow-y-auto h-[calc(100%-75px)] flex-col gap-1">
+    <div className="flex lg:overflow-y-auto h-[calc(100%-75px)] flex-col gap-1">
       {isMessageUsersLoading && (
         <>
           {[...Array(5)].map((_, index) => (

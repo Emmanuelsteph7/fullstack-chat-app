@@ -16,7 +16,7 @@ const ChatMessageContent = () => {
   }, [socketSubscriptions, socket?.connected, unsubscribeFromSocket]);
 
   return (
-    <div className="flex-1">
+    <div className="lg:flex-1">
       {!selectedUser && <ChatEmptyMessage />}
       {selectedUser && <ChatSelectedUser />}
     </div>

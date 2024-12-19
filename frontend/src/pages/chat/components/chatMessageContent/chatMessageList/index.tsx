@@ -32,7 +32,7 @@ const ChatMessageList = () => {
   }, [getMessages, receiverId]);
 
   return (
-    <div className="flex-1 px-10 py-5 relative overflow-y-auto">
+    <div className="flex-1 px-2 lg:px-10 py-5 relative overflow-y-auto">
       {isMessagesLoading && (
         <div className="py-20 flex items-center justify-center w-full h-full bg-base-100/50 z-[2] top-0">
           <div className="sticky top-0 h-full">

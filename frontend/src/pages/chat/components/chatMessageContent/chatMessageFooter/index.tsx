@@ -1,4 +1,4 @@
-import { ImagePlus, Minus, Send } from "lucide-react";
+import { ImagePlus, LoaderCircle, Minus, Send } from "lucide-react";
 import FormInput from "../../../../../components/formInput";
 import { useState } from "react";
 import { useChatStore } from "../../../../../store/useChatStore";
@@ -6,6 +6,7 @@ import { useSearchParams } from "react-router-dom";
 import { CHAT_QUERY_KEY } from "../../chatAside/chatUserItem";
 import { resolveFileReader } from "../../../../../utils/resolveFileReader";
 import { useSocketStore } from "../../../../../store/useSocketStore";
+import cs from "classnames";
 
 const ChatMessageFooter = () => {
   const [message, setMessage] = useState("");
@@ -67,11 +68,21 @@ const ChatMessageFooter = () => {
   const isUserTyping = typingUsers.includes(selectedUser?._id || "");
 
   return (
-    <div className="py-3 px-10 bg-base-200/50">
+    <div
+      className={cs("pt-3 px-2 lg:px-10 bg-base-200/50", {
+        "opacity-60": isSendMessageLoading,
+      })}
+    >
       {isUserTyping && (
         <p className="text-[12px] text-primary mb-1">
           {selectedUser?.name} Typing...
         </p>
+      )}
+      {isSendMessageLoading && (
+        <div className="flex items-center text-primary gap-2">
+          <span className="text-[12px]">Sending...</span>{" "}
+          <LoaderCircle className="animate-spin" size={14} />
+        </div>
       )}
       {imageBase64 && (
         <div className="relative bg-primary-content/10 rounded-2xl w-[100px] h-[100px]">

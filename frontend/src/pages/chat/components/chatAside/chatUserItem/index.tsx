@@ -5,6 +5,7 @@ import { Api } from "../../../../../types";
 import { getInitials } from "../../../../../utils/getInitials";
 import cs from "classnames";
 import { useAuthStore } from "../../../../../store/useAuthStore";
+import { ChevronRight } from "lucide-react";
 
 interface Props {
   user: Api.General.User;
@@ -36,7 +37,7 @@ const ChatUserItem = ({ user }: Props) => {
       type="button"
       onClick={handleClick}
       className={cs(
-        "flex w-full justify-between focus:outline-2 focus:outline-primary px-3 py-2 rounded-lg items-center",
+        "flex w-full justify-between focus:outline-2 gap-2 border-b border-primary/10 focus:outline-primary px-3 py-2 rounded-lg items-center",
         {
           "bg-primary/10 hover:bg-primary/10": isSelected,
           "hover:bg-primary/5": !isSelected,
@@ -54,7 +55,7 @@ const ChatUserItem = ({ user }: Props) => {
           <div className="absolute bottom-0 right-0 bg-success w-3 h-3 rounded-full" />
         )}
       </div>
-      <div className="w-[calc(100%-60px)]">
+      <div className="w-[calc(100%-100px)] lg:w-[calc(100%-60px)]">
         <h6 className="font-semibold text-[16px] text-left capitalize">
           {name}
         </h6>
@@ -62,6 +63,9 @@ const ChatUserItem = ({ user }: Props) => {
           {isUserTyping && <span className="text-primary">Typing...</span>}
           {!isUserTyping && msg}
         </p>
+      </div>
+      <div className="ml-3">
+        <ChevronRight />
       </div>
     </button>
   );
