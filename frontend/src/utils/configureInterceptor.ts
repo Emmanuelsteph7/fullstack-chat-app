@@ -1,5 +1,7 @@
 import { AxiosConfig } from "../config/axiosConfig";
 import { TOKEN_KEY } from "../constants";
+import { resolveAxiosError } from "./resolveAxiosError";
+import { toast } from "react-toastify";
 
 export const configureInterceptor = (handleLogout: () => void) => {
   const responseInterceptor = AxiosConfig.interceptors.response.use(
@@ -7,7 +9,11 @@ export const configureInterceptor = (handleLogout: () => void) => {
       return response;
     },
     (error) => {
-      const status = error.response?.status;
+      const { message, status } = resolveAxiosError(error);
+
+      if (message) {
+        toast.error(message);
+      }
 
       if (status === 401) {
         handleLogout();

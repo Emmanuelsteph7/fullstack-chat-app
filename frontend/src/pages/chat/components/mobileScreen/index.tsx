@@ -1,27 +1,22 @@
-import { useSearchParams } from "react-router-dom";
 import { useChatStore } from "../../../../store/useChatStore";
-import { CHAT_QUERY_KEY } from "../chatAside/chatUserItem";
-import { useEffect } from "react";
+import { IUseChatSideUsersResponse } from "../../hooks/useChatSideUsers";
 import ChatAside from "../chatAside";
 import ChatMessageContent from "../chatMessageContent";
 
-const MobileScreen = () => {
-  const [searchParams] = useSearchParams();
+interface Props {
+  chatId: string | null;
+  chatSideUsersLogic: IUseChatSideUsersResponse;
+}
 
-  const { handleSelectedUserById, selectedUser, messageUsers } = useChatStore();
-
-  const chatId = searchParams.get(CHAT_QUERY_KEY);
-
-  useEffect(() => {
-    if (selectedUser || !chatId) return;
-
-    handleSelectedUserById(chatId);
-  }, [handleSelectedUserById, chatId, selectedUser, messageUsers]);
+const MobileScreen = ({ chatId, chatSideUsersLogic }: Props) => {
+  const { selectedUser } = useChatStore();
 
   return (
     <div className="lg:hidden">
-      {!chatId && <ChatAside />}
-      {chatId && <ChatMessageContent />}
+      {(!chatId || !selectedUser) && (
+        <ChatAside chatSideUsersLogic={chatSideUsersLogic} />
+      )}
+      {chatId && selectedUser && <ChatMessageContent />}
     </div>
   );
 };

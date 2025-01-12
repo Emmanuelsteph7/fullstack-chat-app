@@ -1,7 +1,19 @@
 export namespace Message {
-  export namespace GetMessages {
+  export namespace GetMessageUsers {
     export interface Request {
+      page?: number;
+      limit?: number;
+    }
+  }
+
+  export namespace GetMessages {
+    export interface RequestParams {
       receiverId?: string;
+    }
+
+    export interface RequestQuery {
+      page?: number;
+      limit?: number;
     }
   }
 

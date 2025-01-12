@@ -1,70 +1,137 @@
 import { create } from "zustand";
 import { Api } from "../types";
-import { toast } from "react-toastify";
-import { resolveAxiosError } from "../utils/resolveAxiosError";
-import {
-  getMessagesService,
-  getMessageUsersService,
-  sendMessageService,
-} from "../services/message-service";
 import { useSocketStore } from "./useSocketStore";
+import { MESSAGE_BOTTOM_ID } from "../pages/chat/constants";
 
-export interface IAuthStore {
+type MessagesByUserIdType = Record<
+  string,
+  {
+    messagesData: Api.Message.GetMessages.Response["data"] | null;
+    user: Api.General.User | null;
+  }
+>;
+
+export interface IChatStore {
   messages: Api.General.Message[];
-  messageUsers: Api.General.User[];
+  messageUsersData: Api.Message.GetMessageUsers.Response["data"] | null;
+  messagesByUserId: MessagesByUserIdType;
   selectedUser: Api.General.User | null;
   isMessageUsersLoading: boolean;
   isMessagesLoading: boolean;
-  isSendMessageLoading: boolean;
   typingUsers: string[];
 }
 
-interface IAuthStoreAction {
-  getMessageUsers: () => Promise<void>;
-  getMessages: (payload: Api.Message.GetMessages.Request) => Promise<void>;
+interface IChatStoreAction {
   handleSelectedUser: (user: Api.General.User) => void;
   handleSelectedUserById: (id: string) => void;
-  sendMessage: (payload: Api.Message.SendMessage.Request) => Promise<void>;
+  handleSetMessages: (
+    res: Api.Message.GetMessages.Response,
+    receiverId: string
+  ) => void;
+  handleSetMessagesUsers: (res: Api.Message.GetMessageUsers.Response) => void;
+  handleSendMessage: (
+    res: Api.Message.SendMessage.Response,
+    receiverId: string
+  ) => void;
+  handleSetMessageFromSocket: (
+    message: Api.General.Message,
+    receiverId: string
+  ) => void;
 }
 
-export const useChatStore = create<IAuthStore & IAuthStoreAction>(
+export const useChatStore = create<IChatStore & IChatStoreAction>(
   (set, get) => ({
     messages: [],
-    messageUsers: [],
+    messageUsersData: null,
+    messagesByUserId: {},
     selectedUser: null,
     isMessageUsersLoading: false,
     isMessagesLoading: false,
-    isSendMessageLoading: false,
     typingUsers: [],
-    getMessageUsers: async () => {
-      try {
-        set({ isMessageUsersLoading: true });
-        const res = await getMessageUsersService();
+    handleSetMessagesUsers: (res: Api.Message.GetMessageUsers.Response) => {
+      const { messageUsersData, messagesByUserId } = get();
+      const updatedUsers = [
+        ...new Map(
+          [...(messageUsersData?.users || []), ...res.data.users].map((obj) => [
+            JSON.stringify(obj),
+            obj,
+          ])
+        ).values(),
+      ];
 
-        set({
-          messageUsers: res.data.users || [],
-        });
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        toast.error(resolveAxiosError(error));
-      } finally {
-        set({ isMessageUsersLoading: false });
-      }
+      const updatedMessagesByUserId: MessagesByUserIdType = {
+        ...messagesByUserId,
+      };
+
+      res.data.users.forEach((user) => {
+        updatedMessagesByUserId[user._id] = messagesByUserId[user._id] || {
+          messagesData: null,
+          user,
+        };
+      });
+
+      set({
+        messageUsersData: {
+          ...res.data,
+          users: updatedUsers,
+        },
+        messagesByUserId: updatedMessagesByUserId,
+      });
     },
-    getMessages: async (payload: Api.Message.GetMessages.Request) => {
-      try {
-        set({ isMessagesLoading: true });
-        const res = await getMessagesService(payload);
+    handleSetMessages: (
+      res: Api.Message.GetMessages.Response,
+      receiverId: string
+    ) => {
+      const { messagesByUserId } = get();
 
-        set({
-          messages: res.data.messages || [],
-        });
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        toast.error(resolveAxiosError(error));
-      } finally {
-        set({ isMessagesLoading: false });
-      }
+      const copiedMessages = { ...messagesByUserId };
+      const previousMessagesFromReceiver = copiedMessages[receiverId];
+      const previousMessagesData = previousMessagesFromReceiver.messagesData;
+      const previousMessages = previousMessagesData?.messages || [];
+      const updatedMessages =
+        previousMessagesData?.currentPage === res.data.currentPage
+          ? previousMessages
+          : [...previousMessages, ...res.data.messages];
+
+      copiedMessages[receiverId] = {
+        ...previousMessagesFromReceiver,
+        messagesData: { ...res.data, messages: updatedMessages },
+      };
+
+      set({
+        messages: res.data.messages || [],
+        messagesByUserId: copiedMessages,
+      });
+    },
+    handleSetMessageFromSocket: (
+      message: Api.General.Message,
+      receiverId: string
+    ) => {
+      const { messagesByUserId } = get();
+
+      const copiedMessages = { ...messagesByUserId };
+      const previousMessagesFromReceiver = copiedMessages[receiverId];
+      const previousMessagesData = previousMessagesFromReceiver.messagesData;
+      const previousMessages = previousMessagesData?.messages || [];
+      const updatedMessages = [...previousMessages, message];
+
+      copiedMessages[receiverId] = {
+        ...previousMessagesFromReceiver,
+        messagesData: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ...(previousMessagesData as any),
+          messages: updatedMessages,
+        },
+      };
+
+      set({
+        messagesByUserId: copiedMessages,
+      });
+
+      setTimeout(() => {
+        const messageBottom = document.querySelector(`#${MESSAGE_BOTTOM_ID}`);
+        messageBottom?.scrollIntoView({ behavior: "smooth" });
+      }, 500);
     },
     handleSelectedUser: (user: Api.General.User) => {
       set({
@@ -72,7 +139,7 @@ export const useChatStore = create<IAuthStore & IAuthStoreAction>(
       });
     },
     handleSelectedUserById: (id: string) => {
-      const messageUsers = get().messageUsers || [];
+      const messageUsers = get().messageUsersData?.users || [];
       const selectedUser = messageUsers.find((item) => item._id === id);
 
       if (selectedUser) {
@@ -81,24 +148,29 @@ export const useChatStore = create<IAuthStore & IAuthStoreAction>(
         });
       }
     },
-    sendMessage: async (payload: Api.Message.SendMessage.Request) => {
-      try {
-        set({ isSendMessageLoading: true });
-        const res = await sendMessageService(payload);
+    handleSendMessage: (
+      res: Api.Message.SendMessage.Response,
+      receiverId: string
+    ) => {
+      const { emitTypingStopEvent } = useSocketStore.getState();
+      emitTypingStopEvent();
 
-        const { emitTypingStopEvent } = useSocketStore.getState();
-        emitTypingStopEvent();
+      const { messagesByUserId } = get();
 
-        const { messages = [] } = get();
-        set({
-          messages: [...messages, res.data.message],
-        });
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        toast.error(resolveAxiosError(error));
-      } finally {
-        set({ isSendMessageLoading: false });
-      }
+      const copiedMessagesByUserId = { ...messagesByUserId };
+      const receiverMessagesData = copiedMessagesByUserId[receiverId];
+      const messagesWithReceiver =
+        receiverMessagesData.messagesData?.messages || [];
+      const updatedMessages = [...messagesWithReceiver, res.data.message];
+
+      (
+        copiedMessagesByUserId[receiverId]
+          .messagesData as Api.Message.GetMessages.Response["data"]
+      ).messages = updatedMessages;
+
+      set({
+        messagesByUserId: copiedMessagesByUserId,
+      });
     },
   })
 );

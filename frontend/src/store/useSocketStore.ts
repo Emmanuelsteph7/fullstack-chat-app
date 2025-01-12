@@ -66,13 +66,8 @@ export const useSocketStore = create<ISocketStore & ISocketStoreAction>(
       socket?.on(NEW_MESSAGE, (message: Api.General.Message) => {
         socket.emit(MESSAGE_DELIVERED, message._id);
 
-        const { selectedUser, messages } = useChatStore.getState();
-
-        if (message.senderId !== selectedUser?._id) return;
-
-        useChatStore.setState({
-          messages: [...messages, message],
-        });
+        const { handleSetMessageFromSocket } = useChatStore.getState();
+        handleSetMessageFromSocket(message, message.senderId);
       });
 
       socket?.on(

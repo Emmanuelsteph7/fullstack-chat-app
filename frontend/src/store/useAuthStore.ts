@@ -151,7 +151,7 @@ export const useAuthStore = create<IAuthStore & IAuthStoreAction>(
         useChatStore.setState({
           messages: [],
           selectedUser: null,
-          messageUsers: [],
+          messageUsersData: null,
         });
 
         set({

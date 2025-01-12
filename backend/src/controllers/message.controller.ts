@@ -18,12 +18,31 @@ export const getMessageUsersController = catchAsyncErrors(
   ) => {
     try {
       const userId = req.user?._id;
-      const messageUsers = await UserModel.find({ _id: { $ne: userId } }); // Get all users not equall to this id
+      const { limit = 10, page = 1 } =
+        req.query as Api.Controllers.Message.GetMessageUsers.Request;
+
+      const parsedPage = Number(page);
+      const parsedLimit = Number(limit);
+
+      const skip = (parsedPage - 1) * parsedLimit;
+      const messageUsers = await UserModel.find({ _id: { $ne: userId } })
+        .skip(skip)
+        .limit(parsedLimit);
+
+      const totalItems = await UserModel.countDocuments({
+        _id: { $ne: userId },
+      });
+
+      const hasNextPage = parsedPage * parsedLimit < totalItems;
+      const totalPages = Math.ceil(totalItems / parsedLimit);
 
       sendResponse({
         message: "Users fetched successfully",
         res,
         data: {
+          currentPage: parsedPage,
+          totalPages,
+          hasNextPage,
           users: messageUsers,
         },
       });
@@ -42,19 +61,43 @@ export const getMessagesController = catchAsyncErrors(
     try {
       const userId = req.user?._id;
       const { receiverId } =
-        req.params as Api.Controllers.Message.GetMessages.Request;
+        req.params as Api.Controllers.Message.GetMessages.RequestParams;
+      const { page = 1, limit = 10 } =
+        req.query as Api.Controllers.Message.GetMessages.RequestQuery;
+
+      const parsedPage = Number(page);
+      const parsedLimit = Number(limit);
+
+      const skip = (parsedPage - 1) * parsedLimit;
 
       const messages = await MessageModel.find({
         $or: [
           { senderId: userId, receiverId },
           { senderId: receiverId, receiverId: userId },
         ],
+      })
+        .sort({ createdAt: -1 }) // Sort by `createdAt` field, latest first
+        .skip(skip)
+        .limit(parsedLimit);
+
+      // Count total messages
+      const totalMessages = await MessageModel.countDocuments({
+        $or: [
+          { senderId: userId, receiverId },
+          { senderId: receiverId, receiverId: userId },
+        ],
       });
+
+      const hasNextPage = parsedPage * parsedLimit < totalMessages;
+      const totalPages = Math.ceil(totalMessages / parsedLimit);
 
       sendResponse({
         message: "Messages fetched successfully",
         res,
         data: {
+          currentPage: parsedPage,
+          totalPages,
+          hasNextPage,
           messages,
         },
       });

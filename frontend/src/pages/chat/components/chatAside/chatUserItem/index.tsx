@@ -1,37 +1,26 @@
-import { useSearchParams } from "react-router-dom";
 import Avatar from "../../../../../components/avatar";
-import { useChatStore } from "../../../../../store/useChatStore";
 import { Api } from "../../../../../types";
-import { getInitials } from "../../../../../utils/getInitials";
 import cs from "classnames";
-import { useAuthStore } from "../../../../../store/useAuthStore";
 import { ChevronRight } from "lucide-react";
+import useChatUserItem from "../../../hooks/useChatUserItem";
 
 interface Props {
   user: Api.General.User;
 }
 
-export const CHAT_QUERY_KEY = "id";
-
 const ChatUserItem = ({ user }: Props) => {
-  const { name, profilePic, _id } = user;
+  const {
+    handleClick,
+    initials,
+    isOnline,
+    isSelected,
+    isUserTyping,
+    profilePic,
+    displayedMessage,
+    name,
+    areMessagesLoading,
+  } = useChatUserItem({ user });
 
-  const [searchParams, setSearchParams] = useSearchParams();
-  const { handleSelectedUser, selectedUser, typingUsers } = useChatStore();
-  const { onlineUsers } = useAuthStore();
-
-  const handleClick = () => {
-    handleSelectedUser(user);
-    searchParams.set(CHAT_QUERY_KEY, user._id);
-    setSearchParams(searchParams);
-  };
-
-  const initials = getInitials(name);
-  const isSelected = _id === selectedUser?._id;
-  const isOnline = onlineUsers.includes(_id);
-  const isUserTyping = typingUsers.includes(_id);
-
-  const msg = "This is a message from john doe about the football match";
   return (
     <button
       type="button"
@@ -47,8 +36,8 @@ const ChatUserItem = ({ user }: Props) => {
       <div className="relative">
         <Avatar
           initials={initials}
-          size={50}
-          textSize={25}
+          size={40}
+          textSize={20}
           src={profilePic?.url || ""}
         />
         {isOnline && (
@@ -59,12 +48,22 @@ const ChatUserItem = ({ user }: Props) => {
         <h6 className="font-semibold text-[16px] text-left capitalize">
           {name}
         </h6>
-        <p className="truncate text-[12px] w-full text-left" title={msg}>
-          {isUserTyping && <span className="text-primary">Typing...</span>}
-          {!isUserTyping && msg}
-        </p>
+        <div
+          className="truncate text-[12px] w-full text-left"
+          title={displayedMessage}
+        >
+          {areMessagesLoading && (
+            <div className="skeleton w-full max-w-[100px] h-4 rounded" />
+          )}
+          {!areMessagesLoading && (
+            <>
+              {isUserTyping && <span className="text-primary">Typing...</span>}
+              {!isUserTyping && displayedMessage}
+            </>
+          )}
+        </div>
       </div>
-      <div className="ml-3">
+      <div className="lg:hidden ml-3">
         <ChevronRight />
       </div>
     </button>

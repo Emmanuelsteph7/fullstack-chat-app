@@ -1,11 +1,13 @@
+import { Api } from "../../../../../types";
 import { IGroupedMessage } from "../../../utils/groupMessagesByDate";
 import ChatSingleMessage from "../chatSingleMessage";
 
 interface Props {
   grouped: IGroupedMessage;
+  receiverUserData: Api.General.User | null;
 }
 
-const ChatGroupedMessages = ({ grouped }: Props) => {
+const ChatGroupedMessages = ({ grouped, receiverUserData }: Props) => {
   const { date, messages } = grouped;
   return (
     <div>
@@ -13,7 +15,11 @@ const ChatGroupedMessages = ({ grouped }: Props) => {
         {date}
       </h6>
       {messages.map((message) => (
-        <ChatSingleMessage key={message._id} message={message} />
+        <ChatSingleMessage
+          key={message._id}
+          receiverUserData={receiverUserData}
+          message={message}
+        />
       ))}
     </div>
   );

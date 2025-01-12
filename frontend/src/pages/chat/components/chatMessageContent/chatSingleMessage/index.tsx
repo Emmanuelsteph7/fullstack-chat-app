@@ -1,7 +1,6 @@
 import { Api } from "../../../../../types";
 import cs from "classnames";
 import { useAuthStore } from "../../../../../store/useAuthStore";
-import { useChatStore } from "../../../../../store/useChatStore";
 import Avatar from "../../../../../components/avatar";
 import { getInitials } from "../../../../../utils/getInitials";
 import { formatTime } from "../../../utils/formatTime";
@@ -9,16 +8,16 @@ import { Check, CheckCheck } from "lucide-react";
 
 interface Props {
   message: Api.General.Message;
+  receiverUserData: Api.General.User | null;
 }
 
-const ChatSingleMessage = ({ message }: Props) => {
+const ChatSingleMessage = ({ message, receiverUserData }: Props) => {
   const { image, text, createdAt, senderId, status } = message;
 
   const { profileData } = useAuthStore();
-  const { selectedUser } = useChatStore();
 
   const isSender = senderId === profileData?._id;
-  const chatUser = isSender ? profileData : selectedUser;
+  const chatUser = isSender ? profileData : receiverUserData;
 
   return (
     <div

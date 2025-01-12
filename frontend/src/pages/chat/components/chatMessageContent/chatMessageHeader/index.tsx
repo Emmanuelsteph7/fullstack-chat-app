@@ -4,7 +4,7 @@ import Avatar from "../../../../../components/avatar";
 import { getInitials } from "../../../../../utils/getInitials";
 import { useAuthStore } from "../../../../../store/useAuthStore";
 import { useSearchParams } from "react-router-dom";
-import { CHAT_QUERY_KEY } from "../../chatAside/chatUserItem";
+import { CHAT_QUERY_KEY } from "../../../constants";
 
 const ChatMessageHeader = () => {
   const { selectedUser } = useChatStore();
