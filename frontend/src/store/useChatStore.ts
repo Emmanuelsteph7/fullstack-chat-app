@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { Api } from "../types";
 import { useSocketStore } from "./useSocketStore";
 import { MESSAGE_BOTTOM_ID } from "../pages/chat/constants";
+import { useSoundStore } from "./useSoundStore";
 
 type MessagesByUserIdType = Record<
   string,
@@ -23,6 +24,7 @@ export interface IChatStore {
 
 interface IChatStoreAction {
   handleSelectedUser: (user: Api.General.User) => void;
+  handleClearSelectedUser: () => void;
   handleSelectedUserById: (id: string) => void;
   handleSetMessages: (
     res: Api.Message.GetMessages.Response,
@@ -35,7 +37,13 @@ interface IChatStoreAction {
   ) => void;
   handleSetMessageFromSocket: (
     message: Api.General.Message,
-    receiverId: string
+    receiverId: string,
+    unreadMessagesCount: number
+  ) => void;
+  handleUpdateMessageFromSocket: (
+    message: Api.General.Message,
+    receiverId: string,
+    unreadMessagesCount: number
   ) => void;
 }
 
@@ -105,7 +113,8 @@ export const useChatStore = create<IChatStore & IChatStoreAction>(
     },
     handleSetMessageFromSocket: (
       message: Api.General.Message,
-      receiverId: string
+      receiverId: string,
+      unreadMessagesCount
     ) => {
       const { messagesByUserId } = get();
 
@@ -120,6 +129,7 @@ export const useChatStore = create<IChatStore & IChatStoreAction>(
         messagesData: {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           ...(previousMessagesData as any),
+          unreadMessagesCount,
           messages: updatedMessages,
         },
       };
@@ -133,9 +143,47 @@ export const useChatStore = create<IChatStore & IChatStoreAction>(
         messageBottom?.scrollIntoView({ behavior: "smooth" });
       }, 500);
     },
+    handleUpdateMessageFromSocket: (
+      message: Api.General.Message,
+      receiverId: string,
+      unreadMessagesCount: number
+    ) => {
+      const { messagesByUserId } = get();
+
+      const copiedMessages = { ...messagesByUserId };
+      const previousMessagesFromReceiver = copiedMessages[receiverId];
+      const previousMessagesData = previousMessagesFromReceiver.messagesData;
+      const previousMessages = previousMessagesData?.messages || [];
+
+      const messageIndex = previousMessages.findIndex(
+        (msg) => msg._id === message._id
+      );
+      if (messageIndex > -1) {
+        previousMessages[messageIndex] = message;
+
+        copiedMessages[receiverId] = {
+          ...previousMessagesFromReceiver,
+          messagesData: {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ...(previousMessagesData as any),
+            unreadMessagesCount,
+            messages: previousMessages,
+          },
+        };
+
+        set({
+          messagesByUserId: copiedMessages,
+        });
+      }
+    },
     handleSelectedUser: (user: Api.General.User) => {
       set({
         selectedUser: user,
+      });
+    },
+    handleClearSelectedUser: () => {
+      set({
+        selectedUser: null,
       });
     },
     handleSelectedUserById: (id: string) => {
@@ -152,8 +200,11 @@ export const useChatStore = create<IChatStore & IChatStoreAction>(
       res: Api.Message.SendMessage.Response,
       receiverId: string
     ) => {
+      const { handlePlaySendMessage } = useSoundStore.getState();
       const { emitTypingStopEvent } = useSocketStore.getState();
+
       emitTypingStopEvent();
+      handlePlaySendMessage();
 
       const { messagesByUserId } = get();
 

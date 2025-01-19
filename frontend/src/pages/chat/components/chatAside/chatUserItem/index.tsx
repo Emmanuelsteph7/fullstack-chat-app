@@ -1,7 +1,6 @@
 import Avatar from "../../../../../components/avatar";
 import { Api } from "../../../../../types";
 import cs from "classnames";
-import { ChevronRight } from "lucide-react";
 import useChatUserItem from "../../../hooks/useChatUserItem";
 
 interface Props {
@@ -19,6 +18,7 @@ const ChatUserItem = ({ user }: Props) => {
     displayedMessage,
     name,
     areMessagesLoading,
+    unreadMessagesCount,
   } = useChatUserItem({ user });
 
   return (
@@ -44,7 +44,12 @@ const ChatUserItem = ({ user }: Props) => {
           <div className="absolute bottom-0 right-0 bg-success w-3 h-3 rounded-full" />
         )}
       </div>
-      <div className="w-[calc(100%-100px)] lg:w-[calc(100%-60px)]">
+      <div
+        className={cs({
+          "w-[calc(100%-91px)]": !!unreadMessagesCount,
+          "w-[calc(100%-56px)]": !unreadMessagesCount,
+        })}
+      >
         <h6 className="font-semibold text-[16px] text-left capitalize">
           {name}
         </h6>
@@ -63,8 +68,18 @@ const ChatUserItem = ({ user }: Props) => {
           )}
         </div>
       </div>
-      <div className="lg:hidden ml-3">
-        <ChevronRight />
+      <div>
+        <div
+          className={cs({
+            "w-[35px] flex justify-end": !!unreadMessagesCount,
+          })}
+        >
+          {unreadMessagesCount ? (
+            <p className="w-max px-2 text-[12px] h-6 flex justify-center items-center bg-primary rounded-full text-primary-content">
+              <span className="relative top-[0px]">{unreadMessagesCount}</span>
+            </p>
+          ) : null}
+        </div>
       </div>
     </button>
   );

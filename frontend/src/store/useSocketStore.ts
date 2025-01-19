@@ -2,10 +2,15 @@ import { create } from "zustand";
 import { API_BASE_URL } from "../constants";
 import { io, Socket } from "socket.io-client";
 import {
+  ENTER_ROOM,
+  LEAVE_ROOM,
   MESSAGE_DELIVERED,
   MESSAGE_DELIVERED_ACKNOWLEDGED,
+  MESSAGE_READ,
+  MESSAGE_READ_ACKNOWLEDGED,
   NEW_MESSAGE,
   ONLINE_USERS,
+  UNREAD_COUNT,
   TYPING_MESSAGE,
   TYPING_MESSAGE_STOP,
   TYPING_USERS,
@@ -13,6 +18,7 @@ import {
 import { useAuthStore } from "./useAuthStore";
 import { Api } from "../types";
 import { useChatStore } from "./useChatStore";
+import { useSoundStore } from "./useSoundStore";
 
 export interface ISocketStore {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -26,6 +32,9 @@ interface ISocketStoreAction {
   unsubscribeFromSocket: () => void;
   emitTypingEvent: () => void;
   emitTypingStopEvent: () => void;
+  emitReadEvent: () => void;
+  emitEnterRoom: (receiverId: string) => void;
+  emitLeaveRoom: () => void;
 }
 
 export const useSocketStore = create<ISocketStore & ISocketStoreAction>(
@@ -63,32 +72,94 @@ export const useSocketStore = create<ISocketStore & ISocketStoreAction>(
         });
       });
 
-      socket?.on(NEW_MESSAGE, (message: Api.General.Message) => {
-        socket.emit(MESSAGE_DELIVERED, message._id);
+      socket?.on(
+        NEW_MESSAGE,
+        ({
+          unreadMessagesCount,
+          message,
+        }: {
+          unreadMessagesCount: number;
+          message: Api.General.Message;
+        }) => {
+          const { handleSetMessageFromSocket, selectedUser } =
+            useChatStore.getState();
+          const { handlePlayNewMessageSound, handlePlayNewMessageSound2 } =
+            useSoundStore.getState();
 
-        const { handleSetMessageFromSocket } = useChatStore.getState();
-        handleSetMessageFromSocket(message, message.senderId);
-      });
+          socket.emit(MESSAGE_DELIVERED, message._id, selectedUser?._id);
+          handleSetMessageFromSocket(
+            message,
+            message.senderId,
+            unreadMessagesCount
+          );
+
+          if (selectedUser && message.senderId === selectedUser._id) {
+            handlePlayNewMessageSound2();
+          } else {
+            handlePlayNewMessageSound();
+          }
+        }
+      );
 
       socket?.on(
         MESSAGE_DELIVERED_ACKNOWLEDGED,
-        (message: Api.General.Message) => {
+        ({
+          unreadMessagesCount,
+          message,
+        }: {
+          unreadMessagesCount: number;
+          message: Api.General.Message;
+        }) => {
           const { profileData } = useAuthStore.getState();
           if (message.senderId !== profileData?._id) return;
 
-          const { messages } = useChatStore.getState();
-          const copiedMessages = [...messages];
-
-          const messageIndex = copiedMessages.findIndex(
-            (m) => m._id === message._id
+          const { handleUpdateMessageFromSocket } = useChatStore.getState();
+          handleUpdateMessageFromSocket(
+            message,
+            message.receiverId,
+            unreadMessagesCount
           );
+        }
+      );
 
-          if (messageIndex > -1) {
-            copiedMessages[messageIndex] = message;
-            useChatStore.setState({
-              messages: copiedMessages,
-            });
-          }
+      socket?.on(
+        MESSAGE_READ_ACKNOWLEDGED,
+        ({
+          unreadMessagesCount,
+          message,
+        }: {
+          unreadMessagesCount: number;
+          message: Api.General.Message;
+        }) => {
+          const { profileData } = useAuthStore.getState();
+          if (message.senderId !== profileData?._id) return;
+
+          const { handleUpdateMessageFromSocket } = useChatStore.getState();
+          handleUpdateMessageFromSocket(
+            message,
+            message.receiverId,
+            unreadMessagesCount
+          );
+        }
+      );
+
+      socket?.on(
+        UNREAD_COUNT,
+        ({
+          unreadMessagesCount,
+          receiverId,
+          message,
+        }: {
+          message: Api.General.Message;
+          unreadMessagesCount: number;
+          receiverId: string;
+        }) => {
+          const { handleUpdateMessageFromSocket } = useChatStore.getState();
+          handleUpdateMessageFromSocket(
+            message,
+            receiverId,
+            unreadMessagesCount
+          );
         }
       );
 
@@ -121,6 +192,22 @@ export const useSocketStore = create<ISocketStore & ISocketStoreAction>(
         sender: profileData?._id,
         receiver: selectedUser?._id,
       });
+    },
+    emitReadEvent: () => {
+      const { socket } = get();
+
+      const { profileData } = useAuthStore.getState();
+      const { selectedUser } = useChatStore.getState();
+
+      if (profileData?._id) socket?.emit(MESSAGE_READ, selectedUser?._id);
+    },
+    emitEnterRoom: (receiverId: string) => {
+      const { socket } = get();
+      socket?.emit(ENTER_ROOM, receiverId);
+    },
+    emitLeaveRoom: () => {
+      const { socket } = get();
+      socket?.emit(LEAVE_ROOM);
     },
   })
 );

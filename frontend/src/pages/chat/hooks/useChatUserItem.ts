@@ -76,7 +76,9 @@ const useChatUserItem = ({ user }: IUseChatUserItemOptions) => {
   const initials = getInitials(name);
   const isSelected = _id === selectedUser?._id;
   const isOnline = onlineUsers.includes(_id);
-  const isUserTyping = typingUsers.includes(_id);
+  const isUserTyping = typingUsers?.includes(_id);
+  const unreadMessagesCount =
+    messagesByUserId[user?._id || ""].messagesData?.unreadMessagesCount || 0;
 
   return {
     initials,
@@ -88,6 +90,7 @@ const useChatUserItem = ({ user }: IUseChatUserItemOptions) => {
     name,
     displayedMessage,
     areMessagesLoading,
+    unreadMessagesCount,
   };
 };
 

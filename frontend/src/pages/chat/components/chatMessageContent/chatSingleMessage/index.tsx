@@ -47,9 +47,14 @@ const ChatSingleMessage = ({ message, receiverUserData }: Props) => {
       </div>
       <div className="chat-footer flex items-center text-[12px] opacity-50">
         {isSender && (
-          <span className="capitalize flex items-center">
+          <span
+            className={cs("capitalize flex items-center", {
+              "text-primary": status === "read",
+            })}
+          >
             {status} {status === "sent" && <Check size={12} />}{" "}
             {status === "delivered" && <CheckCheck size={12} />}
+            {status === "read" && <CheckCheck size={12} />}
           </span>
         )}
         <time className="text-xs ml-1 opacity-50">{formatTime(createdAt)}</time>

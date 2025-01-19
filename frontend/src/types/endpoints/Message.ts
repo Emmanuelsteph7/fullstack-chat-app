@@ -31,6 +31,7 @@ export namespace Message {
         totalPages: number;
         hasNextPage: boolean;
         messages: General.Message[];
+        unreadMessagesCount: number;
       };
     }
   }

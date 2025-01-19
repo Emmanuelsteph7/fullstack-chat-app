@@ -18,7 +18,6 @@ const ChatMessageFooter = ({ showArrowBtn, handleScrollToBottom }: Props) => {
     handleSubmit,
     isSendMessageLoading,
     isUserTyping,
-    selectedUser,
     imageBase64,
     message,
   } = useChatMessageFooter();
@@ -34,9 +33,11 @@ const ChatMessageFooter = ({ showArrowBtn, handleScrollToBottom }: Props) => {
         })}
       >
         {isUserTyping && (
-          <p className="text-[12px] text-primary mb-1">
-            {selectedUser?.name} Typing...
-          </p>
+          <div className="flex items-center w-max px-2 py-2 mb-1 opacity-60 gap-1 bg-base-100 rounded">
+            <div className="w-2 h-2 bg-primary rounded-full animate-bounce" />
+            <div className="w-2 h-2 bg-primary rounded-full animate-bounce animate-delay-150" />
+            <div className="w-2 h-2 bg-primary rounded-full animate-bounce animate-delay-300" />
+          </div>
         )}
         {isSendMessageLoading && (
           <div className="flex items-center text-primary gap-2">
@@ -52,11 +53,14 @@ const ChatMessageFooter = ({ showArrowBtn, handleScrollToBottom }: Props) => {
             >
               <Minus />
             </button>
-            <img src={imageBase64} className="w-[100px] h-[100px]" />
+            <img
+              src={imageBase64}
+              className="w-[100px] h-[100px] object-contain"
+            />
           </div>
         )}
         <form
-          className="flex py-1 pb-3 items-center gap-5"
+          className="flex py-1 pb-3 items-center gap-3 md:gap-5"
           onSubmit={handleSubmit}
         >
           <div className="flex-1">
@@ -67,9 +71,11 @@ const ChatMessageFooter = ({ showArrowBtn, handleScrollToBottom }: Props) => {
               onChange={handleChange}
               value={message}
               onBlur={handleBlur}
+              autoComplete="off"
+              autoFocus
             />
           </div>
-          <label className="cursor-pointer">
+          <label className="cursor-pointer w-max">
             <input
               type="file"
               onChange={handleSelectImage}
@@ -78,7 +84,11 @@ const ChatMessageFooter = ({ showArrowBtn, handleScrollToBottom }: Props) => {
             />
             <ImagePlus />
           </label>
-          <button disabled={isSendMessageLoading} type="submit">
+          <button
+            disabled={isSendMessageLoading}
+            className="w-max"
+            type="submit"
+          >
             <Send />
           </button>
         </form>

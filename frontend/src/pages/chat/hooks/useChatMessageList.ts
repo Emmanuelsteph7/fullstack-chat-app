@@ -8,6 +8,7 @@ import {
 } from "../utils/groupMessagesByDate";
 import { getMessagesService } from "../../../services/message-service";
 import { Api } from "../../../types";
+import { useSocketStore } from "../../../store/useSocketStore";
 
 export interface IUseChatMessageListResponse {
   messageListRef: React.RefObject<HTMLDivElement>;
@@ -29,6 +30,7 @@ const useChatMessageList = (): IUseChatMessageListResponse => {
 
   const [searchParams] = useSearchParams();
   const { messagesByUserId, handleSetMessages } = useChatStore();
+  const { emitEnterRoom } = useSocketStore();
 
   const receiverId = searchParams.get(CHAT_QUERY_KEY);
 
@@ -99,6 +101,10 @@ const useChatMessageList = (): IUseChatMessageListResponse => {
     receiverMessagesData?.hasNextPage,
   ]);
 
+  // useEffect(() => {
+  //   emitReadEvent();
+  // }, [emitReadEvent, receiverId, groupedMessages]);
+
   useEffect(() => {
     const messageList = messageListRef.current;
     messageList?.addEventListener("scroll", handleScroll);
@@ -106,7 +112,12 @@ const useChatMessageList = (): IUseChatMessageListResponse => {
   }, [handleScroll]);
 
   useEffect(() => {
+    if (receiverId) {
+      emitEnterRoom(receiverId);
+    }
+
     messageBottomRef?.current?.scrollIntoView({ behavior: "instant" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [receiverId]);
 
   useEffect(() => {

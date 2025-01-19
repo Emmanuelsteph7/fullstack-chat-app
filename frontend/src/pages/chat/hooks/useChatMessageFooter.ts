@@ -50,6 +50,8 @@ const useChatMessageFooter = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    if (!imageBase64 && !message.trim()) return;
+
     try {
       setIsSendMessageLoading(true);
       const res = await sendMessageService({
@@ -74,7 +76,7 @@ const useChatMessageFooter = () => {
     }
   };
 
-  const isUserTyping = typingUsers.includes(selectedUser?._id || "");
+  const isUserTyping = typingUsers?.includes(selectedUser?._id || "");
 
   return {
     isUserTyping,

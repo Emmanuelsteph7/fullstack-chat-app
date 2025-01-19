@@ -8,7 +8,7 @@ import { sendResponse } from "../utils/sendResponse";
 import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
 import { CLOUDINARY_CHAT_PICTURES_FOLDER } from "../constants";
 import { getReceiverSocketId, io } from "../config/socket";
-import { MESSAGE_DELIVERED, NEW_MESSAGE } from "../constants/socket";
+import { NEW_MESSAGE } from "../constants/socket";
 
 export const getMessageUsersController = catchAsyncErrors(
   async (
@@ -88,6 +88,12 @@ export const getMessagesController = catchAsyncErrors(
         ],
       });
 
+      const unreadMessagesCount = await MessageModel.countDocuments({
+        senderId: receiverId,
+        receiverId: userId, // Messages intended for the user
+        status: { $in: ["sent", "delivered"] }, // Only count unread messages
+      });
+
       const hasNextPage = parsedPage * parsedLimit < totalMessages;
       const totalPages = Math.ceil(totalMessages / parsedLimit);
 
@@ -99,6 +105,7 @@ export const getMessagesController = catchAsyncErrors(
           totalPages,
           hasNextPage,
           messages,
+          unreadMessagesCount,
         },
       });
     } catch (error: any) {
@@ -144,7 +151,16 @@ export const sendMessageController = catchAsyncErrors(
 
       // This means that the receiver is online
       if (receiverSocketId) {
-        io.to(receiverSocketId).emit(NEW_MESSAGE, message);
+        const unreadMessagesCount = await MessageModel.countDocuments({
+          senderId: userId,
+          receiverId: receiverId, // Messages intended for the user
+          status: { $in: ["sent", "delivered"] }, // Only count unread messages
+        });
+
+        io.to(receiverSocketId).emit(NEW_MESSAGE, {
+          message,
+          unreadMessagesCount,
+        });
       }
 
       sendResponse({
