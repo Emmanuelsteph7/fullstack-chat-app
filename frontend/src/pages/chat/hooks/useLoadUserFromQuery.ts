@@ -6,8 +6,7 @@ import { CHAT_QUERY_KEY } from "../constants";
 const useLoadUserFromQuery = () => {
   const [searchParams] = useSearchParams();
 
-  const { handleSelectedUserById, selectedUser, messageUsersData } =
-    useChatStore();
+  const { handleSelectedUserById, selectedUser } = useChatStore();
 
   const chatId = searchParams.get(CHAT_QUERY_KEY);
 
@@ -15,7 +14,7 @@ const useLoadUserFromQuery = () => {
     if (selectedUser || !chatId) return;
 
     handleSelectedUserById(chatId);
-  }, [handleSelectedUserById, chatId, selectedUser, messageUsersData]);
+  }, [handleSelectedUserById, chatId, selectedUser]);
 
   return { chatId };
 };

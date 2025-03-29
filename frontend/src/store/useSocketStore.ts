@@ -14,6 +14,7 @@ import {
   TYPING_MESSAGE,
   TYPING_MESSAGE_STOP,
   TYPING_USERS,
+  UPDATE_MESSAGE,
 } from "../constants/socket";
 import { useAuthStore } from "./useAuthStore";
 import { Api } from "../types";
@@ -102,6 +103,21 @@ export const useSocketStore = create<ISocketStore & ISocketStoreAction>(
       );
 
       socket?.on(
+        UPDATE_MESSAGE,
+        ({
+          message,
+          receiverId,
+        }: {
+          message: Api.General.Message;
+          receiverId: string;
+        }) => {
+          const { handleSetSingleChatMessage } = useChatStore.getState();
+
+          handleSetSingleChatMessage(message, receiverId);
+        }
+      );
+
+      socket?.on(
         MESSAGE_DELIVERED_ACKNOWLEDGED,
         ({
           unreadMessagesCount,
@@ -111,7 +127,7 @@ export const useSocketStore = create<ISocketStore & ISocketStoreAction>(
           message: Api.General.Message;
         }) => {
           const { profileData } = useAuthStore.getState();
-          if (message.senderId !== profileData?._id) return;
+          if (message?.senderId !== profileData?._id) return;
 
           const { handleUpdateMessageFromSocket } = useChatStore.getState();
           handleUpdateMessageFromSocket(

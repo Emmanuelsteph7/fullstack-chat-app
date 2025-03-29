@@ -76,6 +76,13 @@ const useChatMessageFooter = () => {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleEmojiSelect = (data: any) => {
+    const emoji = data?.native;
+
+    setMessage((prev) => prev + emoji);
+  };
+
   const isUserTyping = typingUsers?.includes(selectedUser?._id || "");
 
   return {
@@ -89,6 +96,7 @@ const useChatMessageFooter = () => {
     selectedUser,
     imageBase64,
     message,
+    handleEmojiSelect,
   };
 };
 

@@ -49,4 +49,18 @@ export namespace Message {
       };
     }
   }
+
+  export namespace AddMessageReaction {
+    export interface Request {
+      receiverId: string;
+      messageId?: string;
+      emoji?: string;
+    }
+
+    export interface Response extends General.SuccessResponse {
+      data: {
+        message: General.Message;
+      };
+    }
+  }
 }

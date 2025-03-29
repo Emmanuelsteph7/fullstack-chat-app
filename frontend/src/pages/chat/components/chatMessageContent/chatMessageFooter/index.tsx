@@ -3,6 +3,7 @@ import FormInput from "../../../../../components/formInput";
 import cs from "classnames";
 import useChatMessageFooter from "../../../hooks/useChatMessageFooter";
 import ChatBtnDown from "../chatBtnDown";
+import EmojiPicker from "../emojiPicker";
 
 interface Props {
   showArrowBtn: boolean;
@@ -20,6 +21,7 @@ const ChatMessageFooter = ({ showArrowBtn, handleScrollToBottom }: Props) => {
     isUserTyping,
     imageBase64,
     message,
+    handleEmojiSelect,
   } = useChatMessageFooter();
 
   return (
@@ -75,6 +77,7 @@ const ChatMessageFooter = ({ showArrowBtn, handleScrollToBottom }: Props) => {
               autoFocus
             />
           </div>
+          <EmojiPicker handleEmojiSelect={handleEmojiSelect} />
           <label className="cursor-pointer w-max">
             <input
               type="file"

@@ -5,5 +5,7 @@ export const resolveAxiosError = (error: any) => {
     error?.errMessage ||
     "Something went wrong!!!";
 
-  return errMessage;
+  const status = error?.error?.statusCode;
+
+  return { message: errMessage, status };
 };

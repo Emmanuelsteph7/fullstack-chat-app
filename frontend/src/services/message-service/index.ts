@@ -36,3 +36,12 @@ export const sendMessageService = async (
     AxiosResponse<Api.Message.SendMessage.Response>
   >(`/message/${payload.receiverId}`, payload).then((res) => res.data);
 };
+
+export const addMessageReactionService = async (
+  payload: Api.Message.AddMessageReaction.Request
+): Promise<Api.Message.AddMessageReaction.Response> => {
+  return AxiosConfig.put<
+    Api.Message.AddMessageReaction.Response,
+    AxiosResponse<Api.Message.AddMessageReaction.Response>
+  >(`/message/${payload.messageId}`, payload).then((res) => res.data);
+};

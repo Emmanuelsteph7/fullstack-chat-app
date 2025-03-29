@@ -1,10 +1,10 @@
 import Avatar from "../../../../../components/avatar";
-import { Api } from "../../../../../types";
 import cs from "classnames";
 import useChatUserItem from "../../../hooks/useChatUserItem";
+import { IUsersWithMessages } from "../../../../../store/useChatStore";
 
 interface Props {
-  user: Api.General.User;
+  user: IUsersWithMessages;
 }
 
 const ChatUserItem = ({ user }: Props) => {

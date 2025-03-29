@@ -17,4 +17,5 @@ export enum Path {
    */
   GetMessageUsers = "/message/users",
   GetMessages = "/message/:receiverId",
+  AddMessageReaction = "/message/:messageId",
 }

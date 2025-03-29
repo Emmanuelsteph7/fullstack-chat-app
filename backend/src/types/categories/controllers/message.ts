@@ -27,4 +27,15 @@ export namespace Message {
       image?: string;
     }
   }
+
+  export namespace AddMessageReaction {
+    export interface RequestParams {
+      messageId?: string;
+    }
+
+    export interface RequestBody {
+      emoji?: string;
+      receiverId?: string;
+    }
+  }
 }

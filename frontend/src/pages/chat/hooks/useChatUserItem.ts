@@ -1,19 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Api } from "../../../types";
 import { useSearchParams } from "react-router-dom";
-import { useChatStore } from "../../../store/useChatStore";
+import { IUsersWithMessages, useChatStore } from "../../../store/useChatStore";
 import { useAuthStore } from "../../../store/useAuthStore";
-import { groupPlainMessagesByDate } from "../utils/groupPlainMessagesByDate";
 import { getMessagesService } from "../../../services/message-service";
 import { getInitials } from "../../../utils/getInitials";
 import { CHAT_QUERY_KEY, MESSAGES_LIMIT } from "../constants";
 
 interface IUseChatUserItemOptions {
-  user: Api.General.User;
+  user: IUsersWithMessages;
 }
 
 const useChatUserItem = ({ user }: IUseChatUserItemOptions) => {
-  const { name, profilePic, _id } = user;
+  const { name, profilePic, _id, mostRecentMessage } = user;
 
   const [areMessagesLoading, setAreMessagesLoading] = useState(false);
 
@@ -23,25 +21,22 @@ const useChatUserItem = ({ user }: IUseChatUserItemOptions) => {
     handleSelectedUser,
     selectedUser,
     typingUsers,
-    messagesByUserId,
-    handleSetMessages,
+    handleSetChatMessages,
+    usersWithMessages,
+    handleReturnUserById,
   } = useChatStore();
 
-  const userMessages = messagesByUserId[_id]?.messagesData;
-
   const displayedMessage = useMemo(() => {
-    const sortedMessage = groupPlainMessagesByDate(
-      userMessages?.messages || []
-    );
-    return (
-      sortedMessage[sortedMessage.length - 1]?.text || "No message available"
-    );
-  }, [userMessages?.messages]);
+    return mostRecentMessage?.text || "No message available";
+  }, [mostRecentMessage?.text]);
 
   const shouldFetchMessages = useMemo(() => {
+    const userMessages = usersWithMessages.find(
+      (user) => user._id === _id
+    )?.messagesData;
     if (!userMessages) return true;
     return false;
-  }, [userMessages]);
+  }, [_id, usersWithMessages]);
 
   const handleFetchMessages = useCallback(async () => {
     if (areMessagesLoading) return;
@@ -53,13 +48,13 @@ const useChatUserItem = ({ user }: IUseChatUserItemOptions) => {
         receiverId: _id,
       });
 
-      handleSetMessages(res, _id);
+      handleSetChatMessages(res, _id);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-empty
     } catch (error) {
     } finally {
       setAreMessagesLoading(false);
     }
-  }, [_id, areMessagesLoading, handleSetMessages]);
+  }, [_id, areMessagesLoading, handleSetChatMessages]);
 
   useEffect(() => {
     if (shouldFetchMessages) {
@@ -78,7 +73,7 @@ const useChatUserItem = ({ user }: IUseChatUserItemOptions) => {
   const isOnline = onlineUsers.includes(_id);
   const isUserTyping = typingUsers?.includes(_id);
   const unreadMessagesCount =
-    messagesByUserId[user?._id || ""].messagesData?.unreadMessagesCount || 0;
+    handleReturnUserById(_id)?.user?.messagesData?.unreadMessagesCount || 0;
 
   return {
     initials,

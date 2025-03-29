@@ -8,7 +8,7 @@ import { sendResponse } from "../utils/sendResponse";
 import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
 import { CLOUDINARY_CHAT_PICTURES_FOLDER } from "../constants";
 import { getReceiverSocketId, io } from "../config/socket";
-import { NEW_MESSAGE } from "../constants/socket";
+import { NEW_MESSAGE, UPDATE_MESSAGE } from "../constants/socket";
 
 export const getMessageUsersController = catchAsyncErrors(
   async (
@@ -169,6 +169,56 @@ export const sendMessageController = catchAsyncErrors(
         status: 201,
         data: {
           message,
+        },
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  }
+);
+
+export const addMessageReactionController = catchAsyncErrors(
+  async (
+    req: Api.General.ExtendedRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const userId = req.user?._id;
+      const { messageId } =
+        req.params as Api.Controllers.Message.AddMessageReaction.RequestParams;
+      const { emoji, receiverId } =
+        req.body as Api.Controllers.Message.AddMessageReaction.RequestBody;
+
+      await MessageModel.findByIdAndUpdate(
+        messageId,
+        { $pull: { reactions: { userId } } },
+        { new: true }
+      );
+
+      // Add the new reaction
+      const updatedMessage = await MessageModel.findByIdAndUpdate(
+        messageId,
+        { $push: { reactions: { userId, emoji } } },
+        { new: true }
+      );
+
+      const receiverSocketId = getReceiverSocketId(receiverId);
+
+      // This means that the receiver is online
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit(UPDATE_MESSAGE, {
+          message: updatedMessage,
+          receiverId: userId,
+        });
+      }
+
+      sendResponse({
+        message: "Emoji updated successfully",
+        res,
+        status: 201,
+        data: {
+          message: updatedMessage,
         },
       });
     } catch (error: any) {

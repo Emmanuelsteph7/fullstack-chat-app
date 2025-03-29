@@ -26,6 +26,12 @@ export namespace General {
 
   export type MessageStatus = "sent" | "delivered" | "read";
 
+  export interface MessageReaction {
+    userId: string;
+    emoji: string;
+    _id: string;
+  }
+
   export interface Message {
     _id: string;
     senderId: string;
@@ -35,6 +41,7 @@ export namespace General {
     status: MessageStatus;
     createdAt: string;
     updatedAt: string;
+    reactions: MessageReaction[];
   }
 
   export type LoadingStatus = "idle" | "loading" | "error" | "loaded";

@@ -8,7 +8,7 @@ interface Props {
 }
 
 const ChatSideUsers = ({ chatSideUsersLogic }: Props) => {
-  const { users, areUsersLoading, messageUsersData, observerRef } =
+  const { users, areUsersLoading, usersListProperties, observerRef } =
     chatSideUsersLogic;
 
   return (
@@ -36,7 +36,7 @@ const ChatSideUsers = ({ chatSideUsersLogic }: Props) => {
           <h4>No user found</h4>
         </div>
       ) : null}
-      {messageUsersData?.hasNextPage && <div ref={observerRef} />}
+      {usersListProperties?.hasNextPage && <div ref={observerRef} />}
     </div>
   );
 };

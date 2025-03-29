@@ -26,6 +26,19 @@ const messageSchema: Schema = new Schema(
       enum: ["sent", "delivered", "read"],
       default: "sent",
     },
+    reactions: {
+      type: [
+        {
+          userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+          },
+          emoji: { type: String, required: true },
+        },
+      ],
+      default: [],
+    },
   },
   {
     // This will add created at and updated at timestamps

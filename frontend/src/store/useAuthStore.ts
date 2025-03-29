@@ -105,7 +105,7 @@ export const useAuthStore = create<IAuthStore & IAuthStoreAction>(
           isAuthenticated: false,
           isSignupLoading: false,
         });
-        toast.error(resolveAxiosError(error));
+        toast.error(resolveAxiosError(error).message);
       }
     },
     login: async (payload: Api.Auth.Login.Request) => {
@@ -133,7 +133,7 @@ export const useAuthStore = create<IAuthStore & IAuthStoreAction>(
           isAuthenticated: false,
           isLoginLoading: false,
         });
-        toast.error(resolveAxiosError(error));
+        toast.error(resolveAxiosError(error).message);
       }
     },
     logout: async () => {
@@ -149,9 +149,8 @@ export const useAuthStore = create<IAuthStore & IAuthStoreAction>(
         localStorage.removeItem(TOKEN_KEY);
 
         useChatStore.setState({
-          messages: [],
           selectedUser: null,
-          messageUsersData: null,
+          usersWithMessages: [],
         });
 
         set({
@@ -175,7 +174,7 @@ export const useAuthStore = create<IAuthStore & IAuthStoreAction>(
         set({
           isLogoutLoading: false,
         });
-        toast.error(resolveAxiosError(error));
+        toast.error(resolveAxiosError(error).message);
       }
     },
     updatePicture: async (payload: Api.User.UploadPicture.Request) => {
@@ -201,7 +200,7 @@ export const useAuthStore = create<IAuthStore & IAuthStoreAction>(
         set({
           isUploadPictureLoading: false,
         });
-        toast.error(resolveAxiosError(error));
+        toast.error(resolveAxiosError(error).message);
       }
     },
   })

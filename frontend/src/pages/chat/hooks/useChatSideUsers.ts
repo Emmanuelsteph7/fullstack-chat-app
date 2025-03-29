@@ -1,19 +1,17 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useChatStore } from "../../../store/useChatStore";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  IUsersListProperties,
+  IUsersWithMessages,
+  useChatStore,
+} from "../../../store/useChatStore";
 import { getMessageUsersService } from "../../../services/message-service";
 import { USERS_LIMIT } from "../constants";
-import { Api } from "../../../types";
 
 export interface IUseChatSideUsersResponse {
-  users: Api.General.User[];
+  users: IUsersWithMessages[];
   areUsersLoading: boolean;
-  messageUsersData: {
-    currentPage: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    users: Api.General.User[];
-  } | null;
   observerRef: React.RefObject<HTMLDivElement>;
+  usersListProperties: IUsersListProperties | null;
 }
 
 const useChatSideUsers = (): IUseChatSideUsersResponse => {
@@ -21,32 +19,40 @@ const useChatSideUsers = (): IUseChatSideUsersResponse => {
 
   const observerRef = useRef<HTMLDivElement>(null);
 
-  const { messageUsersData, handleSetMessagesUsers } = useChatStore();
+  const { usersListProperties, handleSetChatUsers, usersWithMessages } =
+    useChatStore();
+
+  const users = useMemo(() => {
+    return usersWithMessages || [];
+  }, [usersWithMessages]);
 
   const handleFetchMessageUsers = useCallback(async () => {
-    if (areUsersLoading || (messageUsersData && !messageUsersData?.hasNextPage))
+    if (
+      areUsersLoading ||
+      (usersListProperties && !usersListProperties?.hasNextPage)
+    )
       return;
 
     try {
       setAreUsersLoading(true);
       const res = await getMessageUsersService({
         limit: USERS_LIMIT,
-        page: (messageUsersData?.currentPage || 0) + 1,
+        page: (usersListProperties?.currentPage || 0) + 1,
       });
 
-      handleSetMessagesUsers(res);
+      handleSetChatUsers(res);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-empty
     } catch (error) {
     } finally {
       setAreUsersLoading(false);
     }
-  }, [handleSetMessagesUsers, areUsersLoading, messageUsersData]);
+  }, [areUsersLoading, usersListProperties, handleSetChatUsers]);
 
   const handleInfiniteScroll = useCallback(() => {
     if (observerRef.current) {
       const observer = new IntersectionObserver(
         (entries) => {
-          if (entries[0].isIntersecting && messageUsersData?.hasNextPage) {
+          if (entries[0].isIntersecting && usersListProperties?.hasNextPage) {
             handleFetchMessageUsers();
           }
         },
@@ -57,7 +63,7 @@ const useChatSideUsers = (): IUseChatSideUsersResponse => {
 
       return () => observer.disconnect();
     }
-  }, [handleFetchMessageUsers, messageUsersData?.hasNextPage]);
+  }, [handleFetchMessageUsers, usersListProperties?.hasNextPage]);
 
   useEffect(() => {
     handleFetchMessageUsers();
@@ -66,11 +72,9 @@ const useChatSideUsers = (): IUseChatSideUsersResponse => {
 
   useEffect(() => {
     return handleInfiniteScroll();
-  }, [handleInfiniteScroll, messageUsersData?.hasNextPage]);
+  }, [handleInfiniteScroll, usersListProperties?.hasNextPage]);
 
-  const users = messageUsersData?.users || [];
-
-  return { users, areUsersLoading, messageUsersData, observerRef };
+  return { users, areUsersLoading, usersListProperties, observerRef };
 };
 
 export default useChatSideUsers;

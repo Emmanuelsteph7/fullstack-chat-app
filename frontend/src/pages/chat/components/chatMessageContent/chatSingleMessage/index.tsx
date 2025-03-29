@@ -5,6 +5,12 @@ import Avatar from "../../../../../components/avatar";
 import { getInitials } from "../../../../../utils/getInitials";
 import { formatTime } from "../../../utils/formatTime";
 import { Check, CheckCheck } from "lucide-react";
+import { useState } from "react";
+import MiniEmojiPicker from "../miniEmojiPicker";
+import { addMessageReactionService } from "../../../../../services/message-service";
+import { toast } from "react-toastify";
+import { resolveAxiosError } from "../../../../../utils/resolveAxiosError";
+import { useChatStore } from "../../../../../store/useChatStore";
 
 interface Props {
   message: Api.General.Message;
@@ -12,16 +18,40 @@ interface Props {
 }
 
 const ChatSingleMessage = ({ message, receiverUserData }: Props) => {
-  const { image, text, createdAt, senderId, status } = message;
+  const { image, text, createdAt, senderId, status, _id, reactions } = message;
+
+  const [isHovered, setIsHovered] = useState(false);
 
   const { profileData } = useAuthStore();
+  const { handleSetSingleChatMessage } = useChatStore();
 
   const isSender = senderId === profileData?._id;
   const chatUser = isSender ? profileData : receiverUserData;
 
+  const handleEmojiUpdate = async (emoji: string) => {
+    try {
+      const res = await addMessageReactionService({
+        receiverId: receiverUserData?._id || "",
+        emoji,
+        messageId: _id,
+      });
+
+      if (res) {
+        handleSetSingleChatMessage(
+          res.data.message,
+          receiverUserData?._id || ""
+        );
+      }
+    } catch (error) {
+      toast.error(resolveAxiosError(error).message);
+    }
+  };
+
   return (
     <div
-      className={cs("chat", {
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={cs("chat relative", {
         "chat-end": isSender,
         "chat-start": !isSender,
       })}
@@ -37,11 +67,31 @@ const ChatSingleMessage = ({ message, receiverUserData }: Props) => {
       </div>
       <div className="chat-header text-[12px] opacity-50">{chatUser?.name}</div>
       <div
-        className={cs("chat-bubble", {
+        className={cs("chat-bubble relative", {
           "chat-bubble-info": !isSender,
           "": isSender,
         })}
       >
+        {isHovered && (
+          <MiniEmojiPicker
+            handleEmojiUpdate={handleEmojiUpdate}
+            isSender={isSender}
+          />
+        )}
+        {reactions.length ? (
+          <div
+            className={cs("absolute bottom-[-5px] flex items-center gap-1", {
+              "right-0": isSender,
+              "left-0": !isSender,
+            })}
+          >
+            {reactions.map((item) => (
+              <div key={item._id} className="text-[10px]">
+                {item.emoji}
+              </div>
+            ))}
+          </div>
+        ) : null}
         {image && <img src={image.url} className="max-w-[200px] mb-1" />}
         <span>{text}</span>
       </div>

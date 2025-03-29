@@ -1,20 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useChatStore } from "../../../store/useChatStore";
+import { IUsersWithMessages, useChatStore } from "../../../store/useChatStore";
 import { CHAT_QUERY_KEY, MESSAGES_LIMIT } from "../constants";
 import {
   groupMessagesByDate,
   IGroupedMessage,
 } from "../utils/groupMessagesByDate";
 import { getMessagesService } from "../../../services/message-service";
-import { Api } from "../../../types";
 import { useSocketStore } from "../../../store/useSocketStore";
 
 export interface IUseChatMessageListResponse {
   messageListRef: React.RefObject<HTMLDivElement>;
   groupedMessages: IGroupedMessage[];
   areMessagesLoading: boolean;
-  receiverUserData: Api.General.User | null;
+  receiverUserData: IUsersWithMessages | null;
   messageBottomRef: React.RefObject<HTMLDivElement>;
   showArrowBtn: boolean;
   handleScrollToBottom: () => void;
@@ -29,23 +28,23 @@ const useChatMessageList = (): IUseChatMessageListResponse => {
   const prevHeightRef = useRef(0);
 
   const [searchParams] = useSearchParams();
-  const { messagesByUserId, handleSetMessages } = useChatStore();
+  const { usersWithMessages, handleSetChatMessages } = useChatStore();
   const { emitEnterRoom } = useSocketStore();
 
   const receiverId = searchParams.get(CHAT_QUERY_KEY);
 
   const { groupedMessages, receiverUserData, receiverMessagesData } =
     useMemo(() => {
-      const receiverData = messagesByUserId[receiverId || ""];
-      const receiverMessagesData = receiverData?.messagesData;
+      const receiverUserData =
+        usersWithMessages.find((user) => user._id === receiverId) || null;
+      const receiverMessagesData = receiverUserData?.messagesData;
       const receiverMessages = receiverMessagesData?.messages || [];
-      const receiverUserData = receiverData?.user;
       return {
         groupedMessages: groupMessagesByDate(receiverMessages),
         receiverUserData,
         receiverMessagesData,
       };
-    }, [messagesByUserId, receiverId]);
+    }, [receiverId, usersWithMessages]);
 
   const handleFetchMessages = useCallback(async () => {
     if (receiverMessagesData && !receiverMessagesData?.hasNextPage) return;
@@ -61,7 +60,7 @@ const useChatMessageList = (): IUseChatMessageListResponse => {
         const messageList = messageListRef.current;
         prevHeightRef.current = messageList?.scrollHeight || 0;
 
-        handleSetMessages(res, receiverId);
+        handleSetChatMessages(res, receiverId);
 
         if (messageList) {
           setTimeout(() => {
@@ -77,7 +76,7 @@ const useChatMessageList = (): IUseChatMessageListResponse => {
         setAreMessagesLoading(false);
       }
     }
-  }, [handleSetMessages, receiverId, receiverMessagesData]);
+  }, [handleSetChatMessages, receiverId, receiverMessagesData]);
 
   const handleScroll = useCallback(() => {
     const messageList = messageListRef.current;

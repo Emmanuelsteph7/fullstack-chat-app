@@ -3,34 +3,47 @@ import { Api } from "../types";
 import { useSocketStore } from "./useSocketStore";
 import { MESSAGE_BOTTOM_ID } from "../pages/chat/constants";
 import { useSoundStore } from "./useSoundStore";
+import {
+  getMostRecentMessage,
+  mergeUserArrays,
+  sortUserArrayByMessage,
+} from "../utils/userMessages";
+import { mergeArrays } from "../utils/mergeArrays";
 
-type MessagesByUserIdType = Record<
-  string,
-  {
-    messagesData: Api.Message.GetMessages.Response["data"] | null;
-    user: Api.General.User | null;
-  }
->;
+export interface IUsersWithMessages extends Api.General.User {
+  messagesData: Api.Message.GetMessages.Response["data"] | null;
+  mostRecentMessage: Api.General.Message | null;
+}
+
+export interface IUsersListProperties {
+  hasNextPage: boolean;
+  currentPage: number;
+}
 
 export interface IChatStore {
-  messages: Api.General.Message[];
-  messageUsersData: Api.Message.GetMessageUsers.Response["data"] | null;
-  messagesByUserId: MessagesByUserIdType;
   selectedUser: Api.General.User | null;
-  isMessageUsersLoading: boolean;
-  isMessagesLoading: boolean;
   typingUsers: string[];
+  usersWithMessages: IUsersWithMessages[];
+  usersListProperties: IUsersListProperties | null;
 }
 
 interface IChatStoreAction {
   handleSelectedUser: (user: Api.General.User) => void;
   handleClearSelectedUser: () => void;
   handleSelectedUserById: (id: string) => void;
-  handleSetMessages: (
+  handleReturnUserById: (id: string) => {
+    user: IUsersWithMessages | null;
+    index: number;
+  };
+  handleSetChatUsers: (res: Api.Message.GetMessageUsers.Response) => void;
+  handleSetChatMessages: (
     res: Api.Message.GetMessages.Response,
     receiverId: string
   ) => void;
-  handleSetMessagesUsers: (res: Api.Message.GetMessageUsers.Response) => void;
+  handleSetSingleChatMessage: (
+    message: Api.General.Message,
+    receiverId: string
+  ) => void;
   handleSendMessage: (
     res: Api.Message.SendMessage.Response,
     receiverId: string
@@ -49,94 +62,107 @@ interface IChatStoreAction {
 
 export const useChatStore = create<IChatStore & IChatStoreAction>(
   (set, get) => ({
-    messages: [],
-    messageUsersData: null,
-    messagesByUserId: {},
     selectedUser: null,
-    isMessageUsersLoading: false,
-    isMessagesLoading: false,
+    usersListProperties: null,
     typingUsers: [],
-    handleSetMessagesUsers: (res: Api.Message.GetMessageUsers.Response) => {
-      const { messageUsersData, messagesByUserId } = get();
-      const updatedUsers = [
-        ...new Map(
-          [...(messageUsersData?.users || []), ...res.data.users].map((obj) => [
-            JSON.stringify(obj),
-            obj,
-          ])
-        ).values(),
-      ];
+    usersWithMessages: [],
+    handleSetChatUsers: (res: Api.Message.GetMessageUsers.Response) => {
+      const { usersWithMessages } = get();
+      const incomingUsers = res?.data?.users || [];
 
-      const updatedMessagesByUserId: MessagesByUserIdType = {
-        ...messagesByUserId,
-      };
-
-      res.data.users.forEach((user) => {
-        updatedMessagesByUserId[user._id] = messagesByUserId[user._id] || {
-          messagesData: null,
-          user,
-        };
-      });
+      const mergedUsers = mergeUserArrays(usersWithMessages, incomingUsers);
 
       set({
-        messageUsersData: {
-          ...res.data,
-          users: updatedUsers,
+        usersWithMessages: mergedUsers,
+        usersListProperties: {
+          hasNextPage: res.data.hasNextPage,
+          currentPage: res.data.currentPage,
         },
-        messagesByUserId: updatedMessagesByUserId,
       });
     },
-    handleSetMessages: (
+    handleSetChatMessages: (
       res: Api.Message.GetMessages.Response,
       receiverId: string
     ) => {
-      const { messagesByUserId } = get();
+      const { usersWithMessages } = get();
 
-      const copiedMessages = { ...messagesByUserId };
-      const previousMessagesFromReceiver = copiedMessages[receiverId];
-      const previousMessagesData = previousMessagesFromReceiver.messagesData;
-      const previousMessages = previousMessagesData?.messages || [];
-      const updatedMessages =
-        previousMessagesData?.currentPage === res.data.currentPage
-          ? previousMessages
-          : [...previousMessages, ...res.data.messages];
+      const userIndex = usersWithMessages.findIndex(
+        (user) => user._id === receiverId
+      );
 
-      copiedMessages[receiverId] = {
-        ...previousMessagesFromReceiver,
-        messagesData: { ...res.data, messages: updatedMessages },
-      };
+      if (userIndex > -1) {
+        const copiedUsersWithMessages = [...usersWithMessages];
+        const userData = copiedUsersWithMessages[userIndex];
+        const previousUserMessagesData = userData.messagesData;
+        const previousMessages = previousUserMessagesData?.messages || [];
+        const newMessagesData = res.data;
 
-      set({
-        messages: res.data.messages || [],
-        messagesByUserId: copiedMessages,
-      });
+        const updatedMessages = mergeArrays(
+          previousMessages,
+          newMessagesData.messages,
+          "_id"
+        );
+
+        const mostRecentMessage = getMostRecentMessage(updatedMessages);
+
+        copiedUsersWithMessages[userIndex] = {
+          ...userData,
+          messagesData: {
+            ...newMessagesData,
+            messages: updatedMessages,
+          },
+          mostRecentMessage,
+        };
+
+        const sortedUserData = sortUserArrayByMessage(copiedUsersWithMessages);
+
+        set({
+          usersWithMessages: sortedUserData,
+        });
+      }
+    },
+    handleReturnUserById: (id: string) => {
+      const { usersWithMessages } = get();
+
+      const selectedUserIndex = usersWithMessages.findIndex(
+        (user) => user._id === id
+      );
+
+      if (selectedUserIndex > -1) {
+        const selectedUser = usersWithMessages[selectedUserIndex];
+        return { user: selectedUser, index: selectedUserIndex };
+      } else {
+        return { user: null, index: -1 };
+      }
     },
     handleSetMessageFromSocket: (
       message: Api.General.Message,
       receiverId: string,
       unreadMessagesCount
     ) => {
-      const { messagesByUserId } = get();
+      const { handleReturnUserById, handleSetChatMessages } = get();
 
-      const copiedMessages = { ...messagesByUserId };
-      const previousMessagesFromReceiver = copiedMessages[receiverId];
-      const previousMessagesData = previousMessagesFromReceiver.messagesData;
+      const receiverUserIndex = handleReturnUserById(receiverId)?.index;
+
+      if (receiverUserIndex < 0) return;
+
+      const previousMessagesFromReceiver =
+        handleReturnUserById(receiverId)?.user;
+      const previousMessagesData =
+        previousMessagesFromReceiver?.messagesData as Api.Message.GetMessages.Response["data"];
       const previousMessages = previousMessagesData?.messages || [];
       const updatedMessages = [...previousMessages, message];
 
-      copiedMessages[receiverId] = {
-        ...previousMessagesFromReceiver,
-        messagesData: {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ...(previousMessagesData as any),
-          unreadMessagesCount,
-          messages: updatedMessages,
-        },
+      const updatedMessagesData: Api.Message.GetMessages.Response["data"] = {
+        ...previousMessagesData,
+        messages: updatedMessages,
+        unreadMessagesCount,
       };
 
-      set({
-        messagesByUserId: copiedMessages,
-      });
+      handleSetChatMessages(
+        { data: updatedMessagesData } as Api.Message.GetMessages.Response,
+        receiverId
+      );
 
       setTimeout(() => {
         const messageBottom = document.querySelector(`#${MESSAGE_BOTTOM_ID}`);
@@ -148,11 +174,16 @@ export const useChatStore = create<IChatStore & IChatStoreAction>(
       receiverId: string,
       unreadMessagesCount: number
     ) => {
-      const { messagesByUserId } = get();
+      const { handleReturnUserById, handleSetChatMessages } = get();
 
-      const copiedMessages = { ...messagesByUserId };
-      const previousMessagesFromReceiver = copiedMessages[receiverId];
-      const previousMessagesData = previousMessagesFromReceiver.messagesData;
+      const receiverUserIndex = handleReturnUserById(receiverId).index;
+
+      if (receiverUserIndex < 0) return;
+
+      const previousMessagesFromReceiver =
+        handleReturnUserById(receiverId)?.user;
+      const previousMessagesData =
+        previousMessagesFromReceiver?.messagesData as Api.Message.GetMessages.Response["data"];
       const previousMessages = previousMessagesData?.messages || [];
 
       const messageIndex = previousMessages.findIndex(
@@ -161,19 +192,16 @@ export const useChatStore = create<IChatStore & IChatStoreAction>(
       if (messageIndex > -1) {
         previousMessages[messageIndex] = message;
 
-        copiedMessages[receiverId] = {
-          ...previousMessagesFromReceiver,
-          messagesData: {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ...(previousMessagesData as any),
-            unreadMessagesCount,
-            messages: previousMessages,
-          },
+        const updatedMessagesData: Api.Message.GetMessages.Response["data"] = {
+          ...previousMessagesData,
+          messages: previousMessages,
+          unreadMessagesCount,
         };
 
-        set({
-          messagesByUserId: copiedMessages,
-        });
+        handleSetChatMessages(
+          { data: updatedMessagesData } as Api.Message.GetMessages.Response,
+          receiverId
+        );
       }
     },
     handleSelectedUser: (user: Api.General.User) => {
@@ -187,8 +215,8 @@ export const useChatStore = create<IChatStore & IChatStoreAction>(
       });
     },
     handleSelectedUserById: (id: string) => {
-      const messageUsers = get().messageUsersData?.users || [];
-      const selectedUser = messageUsers.find((item) => item._id === id);
+      const { handleReturnUserById } = get();
+      const selectedUser = handleReturnUserById(id).user;
 
       if (selectedUser) {
         set({
@@ -206,22 +234,66 @@ export const useChatStore = create<IChatStore & IChatStoreAction>(
       emitTypingStopEvent();
       handlePlaySendMessage();
 
-      const { messagesByUserId } = get();
+      const { handleReturnUserById, handleSetChatMessages } = get();
 
-      const copiedMessagesByUserId = { ...messagesByUserId };
-      const receiverMessagesData = copiedMessagesByUserId[receiverId];
-      const messagesWithReceiver =
-        receiverMessagesData.messagesData?.messages || [];
+      const receiverUserIndex = handleReturnUserById(receiverId)?.index;
+
+      if (receiverUserIndex < 0) return;
+
+      const receiverMessagesData = handleReturnUserById(receiverId)?.user
+        ?.messagesData as Api.Message.GetMessages.Response["data"];
+      const messagesWithReceiver = receiverMessagesData?.messages || [];
       const updatedMessages = [...messagesWithReceiver, res.data.message];
 
-      (
-        copiedMessagesByUserId[receiverId]
-          .messagesData as Api.Message.GetMessages.Response["data"]
-      ).messages = updatedMessages;
+      const updatedMessagesData: Api.Message.GetMessages.Response["data"] = {
+        ...receiverMessagesData,
+        messages: updatedMessages,
+      };
 
-      set({
-        messagesByUserId: copiedMessagesByUserId,
-      });
+      handleSetChatMessages(
+        { data: updatedMessagesData } as Api.Message.GetMessages.Response,
+        receiverId
+      );
+    },
+    handleSetSingleChatMessage: (
+      message: Api.General.Message,
+      receiverId: string
+    ) => {
+      const { usersWithMessages } = get();
+
+      const userIndex = usersWithMessages.findIndex(
+        (user) => user._id === receiverId
+      );
+
+      if (userIndex > -1) {
+        const copiedUsersWithMessages = [...usersWithMessages];
+        const selectedUser = copiedUsersWithMessages[userIndex];
+        const selectedUserMessageData =
+          selectedUser.messagesData as Api.Message.GetMessages.Response["data"];
+        const selectedUserMessages = selectedUserMessageData?.messages || [];
+
+        const updatedMessages = mergeArrays(
+          selectedUserMessages,
+          [message],
+          "_id"
+        );
+        const mostRecentMessage = getMostRecentMessage(updatedMessages);
+
+        copiedUsersWithMessages[userIndex] = {
+          ...selectedUser,
+          messagesData: {
+            ...selectedUserMessageData,
+            messages: updatedMessages,
+          },
+          mostRecentMessage,
+        };
+
+        const sortedUserData = sortUserArrayByMessage(copiedUsersWithMessages);
+
+        set({
+          usersWithMessages: sortedUserData,
+        });
+      }
     },
   })
 );
