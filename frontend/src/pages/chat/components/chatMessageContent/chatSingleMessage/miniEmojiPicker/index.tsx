@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import EmojiIcon from "../../../../../assets/svgs/emoji.svg?react";
+import EmojiIcon from "../../../../../../assets/svgs/emoji.svg?react";
 import cs from "classnames";
 
 interface Props {
@@ -41,7 +41,7 @@ const MiniEmojiPicker = ({ isSender, handleEmojiUpdate }: Props) => {
     >
       <div className="relative">
         <button type="button" onClick={handleToggle}>
-          <EmojiIcon className="w-[20px] h-[20px]" />
+          <EmojiIcon className="w-[20px] h-[20px] text-base-content" />
         </button>
         {isOpen && (
           <div className="absolute bottom-[calc(100%+6px)] left-[50%] translate-x-[-50%] flex items-center gap-3 bg-primary-content rounded-lg py-1 px-3">

@@ -7,6 +7,7 @@ import useSocketSubscribe from "../../hooks/useSocketSubscribe";
 import DashboardScreen from "../dashboardScreen";
 import MobileScreen from "../mobileScreen";
 import { useChatStore } from "../../../../store/useChatStore";
+import DeleteUndo from "../deleteUndo";
 
 const ChatContent = () => {
   const { isMobile, isDesktop, isTablet } = useMedia();
@@ -40,6 +41,7 @@ const ChatContent = () => {
       {(isMobile || isTablet) && (
         <MobileScreen chatId={chatId} chatSideUsersLogic={chatSideUsersLogic} />
       )}
+      <DeleteUndo />
     </>
   );
 };

@@ -226,3 +226,177 @@ export const addMessageReactionController = catchAsyncErrors(
     }
   }
 );
+
+export const editMessageController = catchAsyncErrors(
+  async (
+    req: Api.General.ExtendedRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const userId = req.user?._id;
+      const { messageId } =
+        req.params as Api.Controllers.Message.EditMessage.RequestParams;
+      const { text, receiverId } =
+        req.body as Api.Controllers.Message.EditMessage.RequestBody;
+
+      // Add the new reaction
+      const updatedMessage = await MessageModel.findByIdAndUpdate(
+        messageId,
+        { text, isEdited: true },
+        { new: true }
+      );
+
+      const receiverSocketId = getReceiverSocketId(receiverId);
+
+      // This means that the receiver is online
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit(UPDATE_MESSAGE, {
+          message: updatedMessage,
+          receiverId: userId,
+        });
+      }
+
+      sendResponse({
+        message: "Message updated successfully",
+        res,
+        status: 201,
+        data: {
+          message: updatedMessage,
+        },
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  }
+);
+
+export const deleteMessageController = catchAsyncErrors(
+  async (
+    req: Api.General.ExtendedRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const userId = req.user?._id;
+      const { messageId } =
+        req.params as Api.Controllers.Message.DeleteMessage.RequestParams;
+
+      const message = await MessageModel.findById(messageId);
+      const messageSenderId = message?.senderId;
+      const messageReceiverId = message?.receiverId;
+
+      if (messageSenderId?.toString() !== userId?.toString()) {
+        return next(
+          new ErrorHandler("You are not allowed to delete this message", 400)
+        );
+      }
+
+      if (message?.isDeleted) {
+        return next(new ErrorHandler("This message is already deleted", 400));
+      }
+
+      const updatedMessage = await MessageModel.findByIdAndUpdate(
+        messageId,
+        {
+          text: null,
+          image: null,
+          isDeleted: true,
+          reactions: [],
+          backupMessages: {
+            text: message?.text,
+            image: message?.image,
+            reactions: message?.reactions,
+          },
+        },
+        { new: true }
+      );
+
+      const receiverSocketId = getReceiverSocketId(messageReceiverId);
+
+      // This means that the receiver is online
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit(UPDATE_MESSAGE, {
+          message: updatedMessage,
+          receiverId: userId,
+        });
+      }
+
+      sendResponse({
+        message: "Message deleted successfully",
+        res,
+        status: 200,
+        data: {
+          message: updatedMessage,
+        },
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  }
+);
+
+export const undoMessageDeleteController = catchAsyncErrors(
+  async (
+    req: Api.General.ExtendedRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const userId = req.user?._id;
+      const { messageId } =
+        req.params as Api.Controllers.Message.UndoMessageDelete.RequestParams;
+
+      const message = await MessageModel.findById(messageId).select(
+        "+backupMessages"
+      );
+      const messageSenderId = message?.senderId;
+      const messageReceiverId = message?.receiverId;
+
+      if (messageSenderId?.toString() !== userId?.toString()) {
+        return next(
+          new ErrorHandler("You are not allowed to update this message", 400)
+        );
+      }
+
+      if (!message?.isDeleted) {
+        return next(
+          new ErrorHandler("This message was not initially deleted", 400)
+        );
+      }
+
+      const updatedMessage = await MessageModel.findByIdAndUpdate(
+        messageId,
+        {
+          text: message.backupMessages?.text || "",
+          image: message.backupMessages?.image || null,
+          isDeleted: false,
+          reactions: message.backupMessages?.reactions || [],
+          backupMessages: null,
+        },
+        { new: true }
+      );
+
+      const receiverSocketId = getReceiverSocketId(messageReceiverId);
+
+      // This means that the receiver is online
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit(UPDATE_MESSAGE, {
+          message: updatedMessage,
+          receiverId: userId,
+        });
+      }
+
+      sendResponse({
+        message: "Message updated successfully",
+        res,
+        status: 200,
+        data: {
+          message: updatedMessage,
+        },
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  }
+);

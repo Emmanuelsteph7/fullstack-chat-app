@@ -17,9 +17,37 @@ const messageSchema: Schema = new Schema(
     text: {
       type: String,
     },
+    isEdited: {
+      type: Boolean,
+      default: false,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
     image: {
       public_id: String,
       url: String,
+    },
+    backupMessages: {
+      type: {
+        image: {
+          public_id: String,
+          url: String,
+        },
+        text: String,
+        reactions: [
+          {
+            userId: {
+              type: mongoose.Schema.Types.ObjectId,
+              ref: "User",
+              required: true,
+            },
+            emoji: { type: String, required: true },
+          },
+        ],
+      },
+      select: false,
     },
     status: {
       type: String,

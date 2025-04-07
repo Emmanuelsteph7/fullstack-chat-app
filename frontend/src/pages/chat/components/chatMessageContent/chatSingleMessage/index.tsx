@@ -6,11 +6,16 @@ import { getInitials } from "../../../../../utils/getInitials";
 import { formatTime } from "../../../utils/formatTime";
 import { Check, CheckCheck } from "lucide-react";
 import { useState } from "react";
-import MiniEmojiPicker from "../miniEmojiPicker";
-import { addMessageReactionService } from "../../../../../services/message-service";
+import MiniEmojiPicker from "./miniEmojiPicker";
+import {
+  addMessageReactionService,
+  deleteMessageService,
+} from "../../../../../services/message-service";
 import { toast } from "react-toastify";
 import { resolveAxiosError } from "../../../../../utils/resolveAxiosError";
 import { useChatStore } from "../../../../../store/useChatStore";
+import ChatMessageDropdown from "./chatMessageDropdown";
+import DeletedMessage from "./deleteMessage";
 
 interface Props {
   message: Api.General.Message;
@@ -18,12 +23,26 @@ interface Props {
 }
 
 const ChatSingleMessage = ({ message, receiverUserData }: Props) => {
-  const { image, text, createdAt, senderId, status, _id, reactions } = message;
+  const {
+    image,
+    text,
+    createdAt,
+    senderId,
+    status,
+    _id,
+    reactions,
+    isDeleted,
+    isEdited,
+  } = message;
 
   const [isHovered, setIsHovered] = useState(false);
 
   const { profileData } = useAuthStore();
-  const { handleSetSingleChatMessage } = useChatStore();
+  const {
+    handleSetSingleChatMessage,
+    handleUpdateShowUndo,
+    handleUpdatePendingMessage,
+  } = useChatStore();
 
   const isSender = senderId === profileData?._id;
   const chatUser = isSender ? profileData : receiverUserData;
@@ -47,6 +66,27 @@ const ChatSingleMessage = ({ message, receiverUserData }: Props) => {
     }
   };
 
+  const handleDeleteMessage = async () => {
+    try {
+      const res = await deleteMessageService({ messageId: _id });
+
+      if (res) {
+        handleSetSingleChatMessage(
+          res.data.message,
+          receiverUserData?._id || ""
+        );
+        handleUpdateShowUndo(true);
+        handleUpdatePendingMessage(res.data.message);
+      }
+    } catch (error) {
+      toast.error(resolveAxiosError(error).message);
+    }
+  };
+
+  if (isDeleted) {
+    return <DeletedMessage isSender={isSender} />;
+  }
+
   return (
     <div
       onMouseEnter={() => setIsHovered(true)}
@@ -65,7 +105,16 @@ const ChatSingleMessage = ({ message, receiverUserData }: Props) => {
           />
         </div>
       </div>
-      <div className="chat-header text-[12px] opacity-50">{chatUser?.name}</div>
+      <div className="chat-header z-[2] relative flex items-center gap-3 justify-between opacity-50">
+        <span className="text-[10px]">{chatUser?.name}</span>
+        {isHovered && isSender && (
+          <ChatMessageDropdown
+            isSender={isSender}
+            handleDeleteMessage={handleDeleteMessage}
+            message={message}
+          />
+        )}
+      </div>
       <div
         className={cs("chat-bubble relative", {
           "chat-bubble-info": !isSender,
@@ -80,13 +129,13 @@ const ChatSingleMessage = ({ message, receiverUserData }: Props) => {
         )}
         {reactions.length ? (
           <div
-            className={cs("absolute bottom-[-5px] flex items-center gap-1", {
+            className={cs("absolute bottom-[-8px] flex items-center gap-1", {
               "right-0": isSender,
               "left-0": !isSender,
             })}
           >
             {reactions.map((item) => (
-              <div key={item._id} className="text-[10px]">
+              <div key={item._id} className="text-[14px]">
                 {item.emoji}
               </div>
             ))}
@@ -96,6 +145,15 @@ const ChatSingleMessage = ({ message, receiverUserData }: Props) => {
         <span>{text}</span>
       </div>
       <div className="chat-footer flex items-center text-[12px] opacity-50">
+        {isEdited && (
+          <span
+            className={cs("capitalize flex items-center mr-2", {
+              "text-primary": status === "read",
+            })}
+          >
+            Edited
+          </span>
+        )}
         {isSender && (
           <span
             className={cs("capitalize flex items-center", {

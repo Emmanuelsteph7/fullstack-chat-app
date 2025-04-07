@@ -25,9 +25,13 @@ export interface IChatStore {
   typingUsers: string[];
   usersWithMessages: IUsersWithMessages[];
   usersListProperties: IUsersListProperties | null;
+  showUndo: boolean;
+  pendingMessage: Api.General.Message | null;
 }
 
 interface IChatStoreAction {
+  handleUpdateShowUndo: (arg: boolean) => void;
+  handleUpdatePendingMessage: (arg: Api.General.Message | null) => void;
   handleSelectedUser: (user: Api.General.User) => void;
   handleClearSelectedUser: () => void;
   handleSelectedUserById: (id: string) => void;
@@ -66,6 +70,18 @@ export const useChatStore = create<IChatStore & IChatStoreAction>(
     usersListProperties: null,
     typingUsers: [],
     usersWithMessages: [],
+    showUndo: false,
+    pendingMessage: null,
+    handleUpdateShowUndo: (arg: boolean) => {
+      set({
+        showUndo: arg,
+      });
+    },
+    handleUpdatePendingMessage: (arg: Api.General.Message | null) => {
+      set({
+        pendingMessage: arg,
+      });
+    },
     handleSetChatUsers: (res: Api.Message.GetMessageUsers.Response) => {
       const { usersWithMessages } = get();
       const incomingUsers = res?.data?.users || [];

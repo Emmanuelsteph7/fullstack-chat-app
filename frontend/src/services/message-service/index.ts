@@ -45,3 +45,30 @@ export const addMessageReactionService = async (
     AxiosResponse<Api.Message.AddMessageReaction.Response>
   >(`/message/${payload.messageId}`, payload).then((res) => res.data);
 };
+
+export const deleteMessageService = async (
+  payload: Api.Message.DeleteMessage.Request
+): Promise<Api.Message.DeleteMessage.Response> => {
+  return AxiosConfig.delete<
+    Api.Message.DeleteMessage.Response,
+    AxiosResponse<Api.Message.DeleteMessage.Response>
+  >(`/message/${payload.messageId}`).then((res) => res.data);
+};
+
+export const editMessageService = async (
+  payload: Api.Message.EditMessage.Request
+): Promise<Api.Message.EditMessage.Response> => {
+  return AxiosConfig.put<
+    Api.Message.EditMessage.Response,
+    AxiosResponse<Api.Message.EditMessage.Response>
+  >(`/message/edit/${payload.messageId}`, payload).then((res) => res.data);
+};
+
+export const undoMessageDeleteService = async (
+  payload: Api.Message.UndoMessageDelete.Request
+): Promise<Api.Message.UndoMessageDelete.Response> => {
+  return AxiosConfig.put<
+    Api.Message.UndoMessageDelete.Response,
+    AxiosResponse<Api.Message.UndoMessageDelete.Response>
+  >(`/message/undo-delete/${payload.messageId}`, {}).then((res) => res.data);
+};

@@ -37,6 +37,8 @@ export namespace General {
     senderId: string;
     receiverId: string;
     text: string;
+    isEdited: boolean;
+    isDeleted: boolean;
     image: ImageObj;
     status: MessageStatus;
     createdAt: string;

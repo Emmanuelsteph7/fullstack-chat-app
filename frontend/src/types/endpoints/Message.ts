@@ -63,4 +63,42 @@ export namespace Message {
       };
     }
   }
+
+  export namespace DeleteMessage {
+    export interface Request {
+      messageId?: string;
+    }
+
+    export interface Response extends General.SuccessResponse {
+      data: {
+        message: General.Message;
+      };
+    }
+  }
+
+  export namespace UndoMessageDelete {
+    export interface Request {
+      messageId?: string;
+    }
+
+    export interface Response extends General.SuccessResponse {
+      data: {
+        message: General.Message;
+      };
+    }
+  }
+
+  export namespace EditMessage {
+    export interface Request {
+      receiverId: string;
+      messageId?: string;
+      text?: string;
+    }
+
+    export interface Response extends General.SuccessResponse {
+      data: {
+        message: General.Message;
+      };
+    }
+  }
 }

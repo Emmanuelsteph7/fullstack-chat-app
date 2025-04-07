@@ -3,9 +3,12 @@ import { Path } from "../navigations/routes";
 import isAuthenticated from "../middlewares/isAuthenticated";
 import {
   addMessageReactionController,
+  deleteMessageController,
+  editMessageController,
   getMessagesController,
   getMessageUsersController,
   sendMessageController,
+  undoMessageDeleteController,
 } from "../controllers/message.controller";
 
 const messageRouter = express.Router();
@@ -18,7 +21,14 @@ messageRouter
   .get(isAuthenticated, getMessagesController)
   .post(isAuthenticated, sendMessageController);
 messageRouter
-  .route(Path.AddMessageReaction)
-  .put(isAuthenticated, addMessageReactionController);
+  .route(Path.MessageId)
+  .put(isAuthenticated, addMessageReactionController)
+  .delete(isAuthenticated, deleteMessageController);
+messageRouter
+  .route(Path.EditMessage)
+  .put(isAuthenticated, editMessageController);
+messageRouter
+  .route(Path.UndoMessageDelete)
+  .put(isAuthenticated, undoMessageDeleteController);
 
 export default messageRouter;

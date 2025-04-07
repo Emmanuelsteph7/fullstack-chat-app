@@ -38,4 +38,27 @@ export namespace Message {
       receiverId?: string;
     }
   }
+
+  export namespace EditMessage {
+    export interface RequestParams {
+      messageId?: string;
+    }
+
+    export interface RequestBody {
+      text?: string;
+      receiverId?: string;
+    }
+  }
+
+  export namespace DeleteMessage {
+    export interface RequestParams {
+      messageId?: string;
+    }
+  }
+
+  export namespace UndoMessageDelete {
+    export interface RequestParams {
+      messageId?: string;
+    }
+  }
 }
