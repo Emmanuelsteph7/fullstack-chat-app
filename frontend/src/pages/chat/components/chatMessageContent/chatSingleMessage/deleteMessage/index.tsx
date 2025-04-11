@@ -1,21 +1,37 @@
-import cs from "classnames";
+import { useRef } from "react";
+import Dialog from "../../../../../../components/dialog";
+import Button from "../../../../../../components/button";
 
 interface Props {
-  isSender: boolean;
+  handleDeleteMessage: () => void;
+  isDeleting: boolean;
 }
 
-const DeletedMessage = ({ isSender }: Props) => {
+const DeleteMessage = ({ handleDeleteMessage, isDeleting }: Props) => {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  const handleDialogOpen = () => {
+    dialogRef.current?.showModal();
+  };
+
   return (
-    <div
-      className={cs("italic flex text-[12px] mb-5", {
-        "justify-end": isSender,
-      })}
-    >
-      <p className="py-1 px-3 rounded-lg bg-primary-content text-primary w-max">
-        This message was deleted
-      </p>
-    </div>
+    <>
+      <button onClick={handleDialogOpen} type="button">
+        Delete
+      </button>
+      <Dialog ref={dialogRef}>
+        <h3 className="text-[24px] mb-10 font-semibold">Delete Message</h3>
+        <div className="flex justify-center items-center gap-5">
+          <Button variant="secondary" disabled={isDeleting} label="Cancel" />
+          <Button
+            label="Delete"
+            loading={isDeleting}
+            onClick={handleDeleteMessage}
+          />
+        </div>
+      </Dialog>
+    </>
   );
 };
 
-export default DeletedMessage;
+export default DeleteMessage;

@@ -400,3 +400,74 @@ export const undoMessageDeleteController = catchAsyncErrors(
     }
   }
 );
+
+export const forwardMessageController = catchAsyncErrors(
+  async (
+    req: Api.General.ExtendedRequest,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const userId = req.user?._id;
+      const { messageId } =
+        req.params as Api.Controllers.Message.ForwardMessage.RequestParams;
+      const { receiverIds } =
+        req.body as Api.Controllers.Message.ForwardMessage.RequestBody;
+
+      const message = await MessageModel.findById(messageId).select(
+        "+backupMessages"
+      );
+
+      const forwardedMessages: {
+        message: Api.Models.Message.MessageModel;
+        receiverId: string;
+      }[] = [];
+
+      if (receiverIds) {
+        for (let i = 0; i < receiverIds.length; i++) {
+          const receiverId = receiverIds[i];
+
+          const newForwardedMessage = await MessageModel.create({
+            senderId: userId,
+            receiverId,
+            text: message?.text || "",
+            image: message?.image ? message.image : null,
+            isForwarded: true,
+          });
+
+          forwardedMessages.push({
+            message: newForwardedMessage,
+            receiverId,
+          });
+
+          const receiverSocketId = getReceiverSocketId(receiverId);
+
+          // This means that the receiver is online
+          if (receiverSocketId) {
+            const unreadMessagesCount = await MessageModel.countDocuments({
+              senderId: userId,
+              receiverId: receiverId, // Messages intended for the user
+              status: { $in: ["sent", "delivered"] }, // Only count unread messages
+            });
+
+            io.to(receiverSocketId).emit(NEW_MESSAGE, {
+              message: newForwardedMessage,
+              unreadMessagesCount,
+            });
+          }
+        }
+      }
+
+      sendResponse({
+        message: "Message updated successfully",
+        res,
+        status: 200,
+        data: {
+          messages: forwardedMessages,
+        },
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  }
+);

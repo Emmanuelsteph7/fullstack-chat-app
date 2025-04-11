@@ -61,4 +61,14 @@ export namespace Message {
       messageId?: string;
     }
   }
+
+  export namespace ForwardMessage {
+    export interface RequestParams {
+      messageId?: string;
+    }
+
+    export interface RequestBody {
+      receiverIds?: string[];
+    }
+  }
 }

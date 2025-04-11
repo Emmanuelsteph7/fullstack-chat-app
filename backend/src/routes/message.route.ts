@@ -5,6 +5,7 @@ import {
   addMessageReactionController,
   deleteMessageController,
   editMessageController,
+  forwardMessageController,
   getMessagesController,
   getMessageUsersController,
   sendMessageController,
@@ -30,5 +31,8 @@ messageRouter
 messageRouter
   .route(Path.UndoMessageDelete)
   .put(isAuthenticated, undoMessageDeleteController);
+messageRouter
+  .route(Path.ForwardMessage)
+  .post(isAuthenticated, forwardMessageController);
 
 export default messageRouter;

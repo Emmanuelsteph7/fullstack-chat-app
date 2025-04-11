@@ -3,17 +3,20 @@ import ArrowCaretDownIcon from "../../../../../../assets/svgs/arrow-caret-down.s
 import cs from "classnames";
 import EditMessage from "../editMessage";
 import { Api } from "../../../../../../types";
+import DeleteMessage from "../deleteMessage";
 
 interface Props {
   isSender: boolean;
   message: Api.General.Message;
   handleDeleteMessage: () => void;
+  isDeleting: boolean;
 }
 
 const ChatMessageDropdown = ({
   isSender,
   handleDeleteMessage,
   message,
+  isDeleting,
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -54,9 +57,10 @@ const ChatMessageDropdown = ({
             )}
           >
             <EditMessage message={message} />
-            <button type="button" onClick={handleDeleteMessage}>
-              Delete
-            </button>
+            <DeleteMessage
+              isDeleting={isDeleting}
+              handleDeleteMessage={handleDeleteMessage}
+            />
           </div>
         )}
       </div>

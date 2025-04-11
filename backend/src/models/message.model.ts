@@ -25,9 +25,16 @@ const messageSchema: Schema = new Schema(
       type: Boolean,
       default: false,
     },
+    isForwarded: {
+      type: Boolean,
+      default: false,
+    },
     image: {
-      public_id: String,
-      url: String,
+      type: {
+        public_id: String,
+        url: String,
+      },
+      default: null,
     },
     backupMessages: {
       type: {

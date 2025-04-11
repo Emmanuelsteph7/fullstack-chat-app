@@ -20,4 +20,5 @@ export enum Path {
   MessageId = "/message/:messageId",
   EditMessage = "/message/edit/:messageId",
   UndoMessageDelete = "/message/undo-delete/:messageId",
+  ForwardMessage = "/message/forward/:messageId",
 }

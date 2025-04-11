@@ -29,6 +29,7 @@ export namespace Message {
     text: string;
     isEdited: boolean;
     isDeleted: boolean;
+    isForwarded: boolean;
     image: any;
     status: MessageStatus;
     reactions: MessageReaction[];

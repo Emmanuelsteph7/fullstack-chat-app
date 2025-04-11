@@ -27,8 +27,23 @@ const useChatUserItem = ({ user }: IUseChatUserItemOptions) => {
   } = useChatStore();
 
   const displayedMessage = useMemo(() => {
+    const isForwarded = mostRecentMessage?.isForwarded;
+
+    if (isForwarded) {
+      return "Forwarded message...";
+    }
+
+    const justImage = mostRecentMessage?.image && !mostRecentMessage?.text;
+    if (justImage) {
+      return "Image...";
+    }
+
     return mostRecentMessage?.text || "No message available";
-  }, [mostRecentMessage?.text]);
+  }, [
+    mostRecentMessage?.image,
+    mostRecentMessage?.isForwarded,
+    mostRecentMessage?.text,
+  ]);
 
   const shouldFetchMessages = useMemo(() => {
     const userMessages = usersWithMessages.find(

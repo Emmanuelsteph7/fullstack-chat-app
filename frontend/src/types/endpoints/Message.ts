@@ -101,4 +101,22 @@ export namespace Message {
       };
     }
   }
+
+  export namespace ForwardMessage {
+    interface Messages {
+      message: General.Message;
+      receiverId: string;
+    }
+
+    export interface Request {
+      messageId?: string;
+      receiverIds: string[];
+    }
+
+    export interface Response extends General.SuccessResponse {
+      data: {
+        messages: Messages[];
+      };
+    }
+  }
 }

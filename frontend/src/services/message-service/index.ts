@@ -72,3 +72,12 @@ export const undoMessageDeleteService = async (
     AxiosResponse<Api.Message.UndoMessageDelete.Response>
   >(`/message/undo-delete/${payload.messageId}`, {}).then((res) => res.data);
 };
+
+export const forwardMessageService = async (
+  payload: Api.Message.ForwardMessage.Request
+): Promise<Api.Message.ForwardMessage.Response> => {
+  return AxiosConfig.post<
+    Api.Message.ForwardMessage.Response,
+    AxiosResponse<Api.Message.ForwardMessage.Response>
+  >(`/message/forward/${payload.messageId}`, payload).then((res) => res.data);
+};

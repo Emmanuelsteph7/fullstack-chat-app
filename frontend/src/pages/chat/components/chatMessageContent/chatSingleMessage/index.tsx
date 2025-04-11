@@ -15,7 +15,8 @@ import { toast } from "react-toastify";
 import { resolveAxiosError } from "../../../../../utils/resolveAxiosError";
 import { useChatStore } from "../../../../../store/useChatStore";
 import ChatMessageDropdown from "./chatMessageDropdown";
-import DeletedMessage from "./deleteMessage";
+import DeletedMessage from "./deletedMessage";
+import ForwardMessage from "./forwardMessage";
 
 interface Props {
   message: Api.General.Message;
@@ -33,9 +34,11 @@ const ChatSingleMessage = ({ message, receiverUserData }: Props) => {
     reactions,
     isDeleted,
     isEdited,
+    isForwarded,
   } = message;
 
   const [isHovered, setIsHovered] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { profileData } = useAuthStore();
   const {
@@ -68,6 +71,8 @@ const ChatSingleMessage = ({ message, receiverUserData }: Props) => {
 
   const handleDeleteMessage = async () => {
     try {
+      setIsDeleting(true);
+
       const res = await deleteMessageService({ messageId: _id });
 
       if (res) {
@@ -80,6 +85,8 @@ const ChatSingleMessage = ({ message, receiverUserData }: Props) => {
       }
     } catch (error) {
       toast.error(resolveAxiosError(error).message);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -112,6 +119,7 @@ const ChatSingleMessage = ({ message, receiverUserData }: Props) => {
             isSender={isSender}
             handleDeleteMessage={handleDeleteMessage}
             message={message}
+            isDeleting={isDeleting}
           />
         )}
       </div>
@@ -122,10 +130,13 @@ const ChatSingleMessage = ({ message, receiverUserData }: Props) => {
         })}
       >
         {isHovered && (
-          <MiniEmojiPicker
-            handleEmojiUpdate={handleEmojiUpdate}
-            isSender={isSender}
-          />
+          <>
+            <ForwardMessage isSender={isSender} _id={_id} />
+            <MiniEmojiPicker
+              handleEmojiUpdate={handleEmojiUpdate}
+              isSender={isSender}
+            />
+          </>
         )}
         {reactions.length ? (
           <div
@@ -141,6 +152,11 @@ const ChatSingleMessage = ({ message, receiverUserData }: Props) => {
             ))}
           </div>
         ) : null}
+        {isForwarded && (
+          <div>
+            <p className="italic text-[10px]">Forwarded message</p>
+          </div>
+        )}
         {image && <img src={image.url} className="max-w-[200px] mb-1" />}
         <span>{text}</span>
       </div>
