@@ -9,8 +9,8 @@ import OtpDialog from "../../../signup/components/otpDialog";
 const LoginForm = () => {
   const {
     error,
-    formValues,
-    handleChange,
+    form,
+    handleInputChange,
     handleSubmit,
     dialogRef,
     isLoginLoading,
@@ -30,8 +30,8 @@ const LoginForm = () => {
           placeholder="Enter email"
           type="email"
           name="email"
-          onChange={handleChange}
-          value={formValues.email}
+          onChange={handleInputChange}
+          value={form.email}
         />
         <FormInput
           label="Password"
@@ -39,8 +39,8 @@ const LoginForm = () => {
           placeholder="Enter password"
           type="password"
           name="password"
-          onChange={handleChange}
-          value={formValues.password}
+          onChange={handleInputChange}
+          value={form.password}
         />
         <div className="mb-6 mt-4">
           <Button
@@ -58,7 +58,7 @@ const LoginForm = () => {
         </p>
       </form>
       <OtpDialog
-        email={formValues.email}
+        email={form.email}
         signUpMessage="Login Successful!"
         ref={dialogRef}
       />

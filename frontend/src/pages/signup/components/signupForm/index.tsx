@@ -9,11 +9,11 @@ import OtpDialog from "../otpDialog";
 const SignupForm = () => {
   const {
     error,
-    formValues,
-    handleChange,
     handleSubmit,
     dialogRef,
     isSignupLoading,
+    form,
+    handleInputChange,
   } = useSignup();
 
   return (
@@ -25,12 +25,12 @@ const SignupForm = () => {
           </span>
         )}
         <FormInput
-          label="Full Name"
+          label="Name"
           icon={<User size={16} />}
-          placeholder="Enter full name"
+          placeholder="Enter name"
           name="name"
-          onChange={handleChange}
-          value={formValues.name}
+          onChange={handleInputChange}
+          value={form.name}
         />
         <FormInput
           label="Email"
@@ -38,8 +38,8 @@ const SignupForm = () => {
           placeholder="Enter email"
           type="email"
           name="email"
-          onChange={handleChange}
-          value={formValues.email}
+          onChange={handleInputChange}
+          value={form.email}
         />
         <FormInput
           label="Password"
@@ -47,8 +47,8 @@ const SignupForm = () => {
           placeholder="Enter password"
           type="password"
           name="password"
-          onChange={handleChange}
-          value={formValues.password}
+          onChange={handleInputChange}
+          value={form.password}
         />
         <div className="mb-6 mt-4">
           <Button
@@ -65,7 +65,7 @@ const SignupForm = () => {
           </Link>
         </p>
       </form>
-      <OtpDialog ref={dialogRef} email={formValues.email} />
+      <OtpDialog ref={dialogRef} email={form.email} />
     </>
   );
 };

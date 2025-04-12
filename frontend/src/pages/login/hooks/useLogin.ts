@@ -1,72 +1,60 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuthStore } from "../../../store/useAuthStore";
 import { useSearchParams } from "react-router-dom";
 import { loginService } from "../../../services/auth-service";
 import { toast } from "react-toastify";
 import { resolveAxiosError } from "../../../utils/resolveAxiosError";
+import useForm from "../../../hooks/useForm";
+import { validateLoginForm } from "../utils/validateLoginForm";
+import useDialog from "../../../hooks/useDialog";
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export interface ILoginForm {
+  email: string;
+  password: string;
+}
 
 const useLogin = () => {
   const [isLoginLoading, setIsLoginLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [formValues, setFormValues] = useState({
-    email: "",
-    password: "",
+
+  const {
+    error,
+    form,
+    handleInputChange,
+    handleUpdateForm,
+    handleSubmit,
+    handleSetError,
+  } = useForm<ILoginForm>({
+    initialFormValues: {
+      email: "",
+      password: "",
+    },
+    onSubmit,
   });
 
   const [searchParams] = useSearchParams();
   const { handleLoginSuccess } = useAuthStore();
-  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  const { dialogRef, handleDialogOpen } = useDialog();
 
   const emailQuery = searchParams.get("email");
 
   useEffect(() => {
     if (emailQuery) {
-      setFormValues((prev) => ({
-        ...prev,
+      handleUpdateForm({
+        ...form,
         email: emailQuery,
-      }));
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleDialogOpen = () => {
-    dialogRef.current?.showModal();
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setError("");
-    setFormValues((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
-
-  const handleValidate = () => {
-    if (!formValues.email || !formValues.password) {
-      setError("Please, fill all fields");
-      return false;
-    }
-
-    if (!formValues.email.match(emailRegex)) {
-      setError("Email is invalid");
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const isValidated = handleValidate();
-
+  async function onSubmit() {
+    const isValidated = validateLoginForm(form, handleSetError);
     if (!isValidated) return;
 
     try {
       setIsLoginLoading(true);
-      const res = await loginService(formValues);
+      const res = await loginService(form);
 
       if (res) {
         handleLoginSuccess(res.data, "Login Successful!");
@@ -83,12 +71,12 @@ const useLogin = () => {
     } finally {
       setIsLoginLoading(false);
     }
-  };
+  }
 
   return {
     handleSubmit,
-    handleChange,
-    formValues,
+    handleInputChange,
+    form,
     error,
     isLoginLoading,
     dialogRef,

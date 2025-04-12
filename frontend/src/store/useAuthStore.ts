@@ -40,14 +40,12 @@ export const useAuthStore = create<IAuthStore & IAuthStoreAction>(
     isGetProfileLoading: true,
     profileData: null,
     isLogoutLoading: false,
-    isLoginLoading: false,
     isUploadPictureLoading: false,
     token: null,
     onlineUsers: [],
     fetchProfile: async () => {
       try {
         const { isAuthenticated } = get();
-
         if (!isAuthenticated) return;
 
         const res = await getUserProfileService();
