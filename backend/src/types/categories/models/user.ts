@@ -9,5 +9,6 @@ export namespace User {
       public_id: string;
       url: string;
     };
+    isEmailVerified: boolean;
   }
 }

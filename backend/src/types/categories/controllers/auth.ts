@@ -7,6 +7,13 @@ export namespace Auth {
     }
   }
 
+  export namespace VerifyOtp {
+    export interface Request {
+      email: string;
+      otp: string;
+    }
+  }
+
   export namespace Login {
     export interface Request {
       email: string;

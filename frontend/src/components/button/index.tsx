@@ -13,6 +13,7 @@ const Button = ({
   variant = "primary",
   className,
   fullWidth,
+  type = "button",
   loading,
   ...otherProps
 }: Props) => {
@@ -27,6 +28,7 @@ const Button = ({
         "cursor-not-allowed": loading,
       })}
       {...otherProps}
+      type={type}
     >
       {loading && "Loading..."}
       {!loading && label}

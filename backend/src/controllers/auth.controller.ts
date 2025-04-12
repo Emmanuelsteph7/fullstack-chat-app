@@ -8,6 +8,12 @@ import { generateToken } from "../utils/generateToken";
 import { sendResponse } from "../utils/sendResponse";
 import comparePassword from "../utils/comparePassword";
 import { disconnectSocket } from "../config/socket";
+import OtpModel from "../models/otp.model";
+import { DURATION_5_MIN } from "../constants";
+import { generateOtp } from "../utils/generateOtp";
+import { sendMail } from "../utils/sendMail";
+import { otpTemplate } from "../templates/otpTemplate";
+import { emailVerifiedTemplate } from "../templates/emailVerifiedTemplate";
 
 export const signUpController = catchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -32,25 +38,105 @@ export const signUpController = catchAsyncErrors(
       }
 
       const hashedPassword = await hashPassword(password);
-      const newUser = await UserModel.create({
+      await UserModel.create({
         ...req.body,
         password: hashedPassword,
       });
 
-      const token = generateToken(newUser._id as string);
+      const otp = generateOtp();
+
+      await OtpModel.create({
+        email,
+        otp,
+        expiresAt: new Date(Date.now() + DURATION_5_MIN),
+      });
+
+      await sendMail({
+        html: otpTemplate({ name, otp }),
+        subject: "Eming Chat",
+        to: email,
+      });
 
       sendResponse({
-        message: "User created",
+        message: "Kindly verify your email address",
+        res,
+        status: 201,
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  }
+);
+
+export const verifyOtpController = catchAsyncErrors(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { email, otp } = req.body as Api.Controllers.Auth.VerifyOtp.Request;
+
+      if (!email || !otp) {
+        return next(new ErrorHandler("Please enter all fields", 400));
+      }
+
+      if (otp.length !== 6) {
+        return next(
+          new ErrorHandler("OTP should be at least 6 characters", 400)
+        );
+      }
+
+      const otpInDB = await OtpModel.findOne({ email });
+
+      if (!otpInDB) {
+        return next(new ErrorHandler("Invalid OTP request", 400));
+      }
+
+      if (otpInDB.otp?.toString() !== otp) {
+        return next(new ErrorHandler("Invalid OTP", 400));
+      }
+
+      const expiryTime = otpInDB?.expiresAt;
+      const isOtpExpired = expiryTime?.getTime() < new Date()?.getTime();
+
+      if (isOtpExpired) {
+        await OtpModel.findOneAndDelete({ email });
+        return next(
+          new ErrorHandler("OTP expired. Kindly request a new OTP", 400)
+        );
+      }
+
+      const userWithThisEmail = await UserModel.findOne({ email });
+
+      if (!userWithThisEmail) {
+        return next(new ErrorHandler("No user found with this email", 400));
+      }
+
+      const updatedUser = await UserModel.findOneAndUpdate(
+        { email },
+        { isEmailVerified: true },
+        { new: true }
+      );
+
+      const token = generateToken(userWithThisEmail._id as string);
+      await OtpModel.findOneAndDelete({ email });
+
+      await sendMail({
+        html: emailVerifiedTemplate({ name: updatedUser?.name || "" }),
+        subject: "Email Verified",
+        to: email,
+      });
+
+      sendResponse({
+        message: "Your email has been verified successfully.",
         res,
         status: 201,
         data: {
           user: {
-            _id: newUser._id,
-            email: newUser.email,
-            name: newUser.name,
-            profilePic: newUser.profilePic,
-            createdAt: (newUser as any).createdAt,
-            updatedAt: (newUser as any).updatedAt,
+            _id: updatedUser?._id,
+            email: updatedUser?.email,
+            name: updatedUser?.name,
+            profilePic: updatedUser?.profilePic,
+            isEmailVerified: updatedUser?.isEmailVerified,
+            createdAt: (updatedUser as any).createdAt,
+            updatedAt: (updatedUser as any).updatedAt,
           },
           token,
         },
@@ -79,6 +165,35 @@ export const loginController = catchAsyncErrors(
         return next(new ErrorHandler("Invalid email or password", 400));
       }
 
+      if (!userWithThisEmail?.isEmailVerified) {
+        const previousOTP = await OtpModel.findOne({ email });
+        const otp = generateOtp();
+
+        if (!previousOTP) {
+          await OtpModel.create({
+            email,
+            otp,
+            expiresAt: new Date(Date.now() + DURATION_5_MIN),
+          });
+        } else {
+          await OtpModel.findOneAndUpdate(
+            { email },
+            {
+              otp,
+              expiresAt: new Date(Date.now() + DURATION_5_MIN),
+            }
+          );
+        }
+
+        await sendMail({
+          html: otpTemplate({ name: userWithThisEmail.name, otp }),
+          subject: "Eming Chat",
+          to: email,
+        });
+
+        return next(new ErrorHandler("Kindly verify your email address", 400));
+      }
+
       const isPasswordValid = await comparePassword(
         password,
         userWithThisEmail.password
@@ -101,6 +216,7 @@ export const loginController = catchAsyncErrors(
             profilePic: userWithThisEmail.profilePic,
             createdAt: (userWithThisEmail as any).createdAt,
             updatedAt: (userWithThisEmail as any).updatedAt,
+            isEmailVerified: userWithThisEmail?.isEmailVerified,
           },
           token,
         },

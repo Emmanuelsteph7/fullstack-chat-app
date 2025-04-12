@@ -29,6 +29,10 @@ const userSchema: Schema = new Schema(
       public_id: String,
       url: String,
     },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     // This will add created at and updated at timestamps

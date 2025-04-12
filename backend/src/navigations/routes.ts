@@ -5,6 +5,7 @@ export enum Path {
   SignUp = "/auth/signup",
   Login = "/auth/login",
   Logout = "/auth/logout",
+  VerifyOtp = "/auth/verify-otp",
 
   /**
    * User

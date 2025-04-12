@@ -18,7 +18,7 @@ const Avatar = ({ initials, src, size = 30, textSize = 16 }: Props) => {
       {!!src && !imageError ? (
         <img
           src={src}
-          className="rounded-full"
+          className="rounded-full object-cover"
           style={{ width: size, height: size }}
           onError={() => setImageError(true)}
         />

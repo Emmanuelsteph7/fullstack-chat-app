@@ -1,17 +1,38 @@
-import { useState } from "react";
-import { useAuthStore } from "../../../store/useAuthStore";
+import { useRef, useState } from "react";
+import { signUpService } from "../../../services/auth-service";
+import { toast } from "react-toastify";
+import { resolveAxiosError } from "../../../utils/resolveAxiosError";
+import { useNavigate } from "react-router-dom";
+import { Path } from "../../../navigations/routes";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+export interface ISignUpForm {
+  name: string;
+  email: string;
+  password: string;
+}
+
 const useSignup = () => {
+  const [isSignupLoading, setIsSignupLoading] = useState(false);
   const [error, setError] = useState("");
-  const [formValues, setFormValues] = useState({
+  const [formValues, setFormValues] = useState<ISignUpForm>({
     name: "",
     email: "",
     password: "",
   });
 
-  const { signup, isSignupLoading } = useAuthStore();
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  const navigate = useNavigate();
+
+  const handleDialogOpen = () => {
+    dialogRef.current?.showModal();
+  };
+
+  const handleDialogClose = () => {
+    dialogRef.current?.close();
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError("");
@@ -45,12 +66,39 @@ const useSignup = () => {
 
     const isValidated = handleValidate();
 
-    if (isValidated) {
-      await signup(formValues);
+    if (!isValidated) return;
+
+    try {
+      setIsSignupLoading(true);
+      const res = await signUpService(formValues);
+
+      if (res) {
+        toast.success(res.message);
+        handleDialogOpen();
+      }
+    } catch (error) {
+      const userExistsMessage = "User already exists";
+      const errMessage = resolveAxiosError(error).message;
+      toast.error(resolveAxiosError(error).message);
+
+      if (errMessage === userExistsMessage) {
+        navigate(`${Path.Login}?email=${formValues.email}`);
+      }
+    } finally {
+      setIsSignupLoading(false);
     }
   };
 
-  return { handleSubmit, handleChange, formValues, error, isSignupLoading };
+  return {
+    handleSubmit,
+    handleChange,
+    formValues,
+    error,
+    isSignupLoading,
+    dialogRef,
+    handleDialogOpen,
+    handleDialogClose,
+  };
 };
 
 export default useSignup;

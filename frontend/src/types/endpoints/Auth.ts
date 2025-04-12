@@ -9,11 +9,17 @@ export namespace Auth {
       password: string;
     }
 
+    export type Response = General.SuccessResponse;
+  }
+
+  export namespace VerifyOtp {
+    export interface Request {
+      email: string;
+      otp: string;
+    }
+
     export interface Response extends General.SuccessResponse {
-      data: {
-        user: General.User;
-        token: string;
-      };
+      data: General.LoginSuccess;
     }
   }
 
@@ -24,10 +30,7 @@ export namespace Auth {
     }
 
     export interface Response extends General.SuccessResponse {
-      data: {
-        user: General.User;
-        token: string;
-      };
+      data: General.LoginSuccess;
     }
   }
 

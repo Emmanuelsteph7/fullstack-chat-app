@@ -48,4 +48,9 @@ export namespace General {
   }
 
   export type LoadingStatus = "idle" | "loading" | "error" | "loaded";
+
+  export interface LoginSuccess {
+    user: User;
+    token: string;
+  }
 }

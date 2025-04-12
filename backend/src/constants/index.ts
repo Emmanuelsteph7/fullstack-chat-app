@@ -18,6 +18,9 @@ export const CLOUDINARY_SECRET_KEY = process.env.CLOUDINARY_SECRET_KEY || "";
 export const CLOUDINARY_PROFILE_PICTURES_FOLDER = "chat_app_profile_pictures";
 export const CLOUDINARY_CHAT_PICTURES_FOLDER = "chat_app_chat_pictures";
 
+export const NODEMAILER_USER_EMAIL = process.env.NODEMAILER_USER_EMAIL || "";
+export const NODEMAILER_USER_PASS = process.env.NODEMAILER_USER_PASS || "";
+
 /** Time durations in milliseconds */
 export const DURATION_2_SEC = 2 * 1000;
 export const DURATION_5_SEC = 5 * 1000;

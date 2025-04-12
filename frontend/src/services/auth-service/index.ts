@@ -11,6 +11,15 @@ export const signUpService = async (
   >("/auth/signup", payload).then((res) => res.data);
 };
 
+export const verifyOtpService = async (
+  payload: Api.Auth.VerifyOtp.Request
+): Promise<Api.Auth.VerifyOtp.Response> => {
+  return AxiosConfig.post<
+    Api.Auth.VerifyOtp.Response,
+    AxiosResponse<Api.Auth.VerifyOtp.Response>
+  >("/auth/verify-otp", payload).then((res) => res.data);
+};
+
 export const loginService = async (
   payload: Api.Auth.Login.Request
 ): Promise<Api.Auth.Login.Response> => {

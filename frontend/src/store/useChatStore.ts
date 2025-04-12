@@ -62,6 +62,7 @@ interface IChatStoreAction {
     receiverId: string,
     unreadMessagesCount: number
   ) => void;
+  handleResetChatState: () => void;
 }
 
 export const useChatStore = create<IChatStore & IChatStoreAction>(
@@ -310,6 +311,16 @@ export const useChatStore = create<IChatStore & IChatStoreAction>(
           usersWithMessages: sortedUserData,
         });
       }
+    },
+    handleResetChatState: () => {
+      set({
+        selectedUser: null,
+        usersListProperties: null,
+        typingUsers: [],
+        usersWithMessages: [],
+        showUndo: false,
+        pendingMessage: null,
+      });
     },
   })
 );
