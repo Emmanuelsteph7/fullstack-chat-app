@@ -415,6 +415,14 @@ export const forgotPasswordTemplate = ({
                                   >
                                     ${resetLink}
                                   </p>
+                                   <p
+                                    style="
+                                      line-height: 140%;
+                                      margin-bottom: 20px;
+                                    "
+                                  >
+                                    This link expires in 20 minutes
+                                  </p>
                                 </div>
                               </td>
                             </tr>

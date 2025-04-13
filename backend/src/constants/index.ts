@@ -33,3 +33,4 @@ export const DURATION_1_HR = 60 * 60 * 1000;
 export const DURATION_7_DAYS = 7 * 24 * 60 * 60 * 1000;
 
 export const DURATION_5_MIN_IN_SECONDS = 5 * 60;
+export const DURATION_20_MIN_IN_SECONDS = 20 * 60;

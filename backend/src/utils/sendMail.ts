@@ -1,5 +1,4 @@
 import nodemailer from "nodemailer";
-import { otpTemplate } from "../templates/otpTemplate";
 import { NODEMAILER_USER_EMAIL, NODEMAILER_USER_PASS } from "../constants";
 
 const transporter = nodemailer.createTransport({

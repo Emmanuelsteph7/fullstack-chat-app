@@ -7,6 +7,7 @@ import SuspenseFallback from "../../../components/suspenseFallback";
 const Login = lazy(() => import("../../../pages/auth/login"));
 const Signup = lazy(() => import("../../../pages/auth/signup"));
 const ForgotPassword = lazy(() => import("../../../pages/auth/forgotPassword"));
+const ResetPassword = lazy(() => import("../../../pages/auth/resetPassword"));
 
 const routesData = [
   {
@@ -20,6 +21,10 @@ const routesData = [
   {
     path: Path.ForgotPassword,
     component: <ForgotPassword />,
+  },
+  {
+    path: `${Path.ResetPassword}/:token`,
+    component: <ResetPassword />,
   },
 ];
 

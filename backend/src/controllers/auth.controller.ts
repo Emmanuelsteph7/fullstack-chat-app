@@ -11,7 +11,7 @@ import { disconnectSocket } from "../config/socket";
 import OtpModel from "../models/otp.model";
 import {
   DURATION_5_MIN,
-  DURATION_5_MIN_IN_SECONDS,
+  DURATION_20_MIN_IN_SECONDS,
   JWT_SECRET,
   WEBSITE_ORIGIN,
 } from "../constants";
@@ -252,7 +252,7 @@ export const forgotPasswordController = catchAsyncErrors(
         return next(new ErrorHandler("User does not exist", 400));
       }
 
-      const token = generateToken(email as string, DURATION_5_MIN_IN_SECONDS);
+      const token = generateToken(email as string, DURATION_20_MIN_IN_SECONDS);
       const resetPasswordLink = `${WEBSITE_ORIGIN}/reset-password/${token}`;
 
       await sendMail({
