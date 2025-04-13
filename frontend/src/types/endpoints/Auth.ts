@@ -34,6 +34,23 @@ export namespace Auth {
     }
   }
 
+  export namespace ForgotPassword {
+    export interface Request {
+      email: string;
+    }
+
+    export type Response = General.SuccessResponse;
+  }
+
+  export namespace ResetPassword {
+    export interface Request {
+      password: string;
+      token: string;
+    }
+
+    export type Response = General.SuccessResponse;
+  }
+
   export namespace Logout {
     export type Response = General.SuccessResponse;
   }

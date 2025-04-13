@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { Api } from "../types";
 import { useSocketStore } from "./useSocketStore";
-import { MESSAGE_BOTTOM_ID } from "../pages/chat/constants";
 import { useSoundStore } from "./useSoundStore";
 import {
   getMostRecentMessage,
@@ -9,6 +8,7 @@ import {
   sortUserArrayByMessage,
 } from "../utils/userMessages";
 import { mergeArrays } from "../utils/mergeArrays";
+import { MESSAGE_BOTTOM_ID } from "../pages/protected/chat/constants";
 
 export interface IUsersWithMessages extends Api.General.User {
   messagesData: Api.Message.GetMessages.Response["data"] | null;

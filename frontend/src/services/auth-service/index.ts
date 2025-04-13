@@ -29,6 +29,24 @@ export const loginService = async (
   >("/auth/login", payload).then((res) => res.data);
 };
 
+export const forgotPasswordService = async (
+  payload: Api.Auth.ForgotPassword.Request
+): Promise<Api.Auth.ForgotPassword.Response> => {
+  return AxiosConfig.post<
+    Api.Auth.ForgotPassword.Response,
+    AxiosResponse<Api.Auth.ForgotPassword.Response>
+  >("/auth/forgot-password", payload).then((res) => res.data);
+};
+
+export const resetPasswordService = async (
+  payload: Api.Auth.ResetPassword.Request
+): Promise<Api.Auth.ResetPassword.Response> => {
+  return AxiosConfig.post<
+    Api.Auth.ResetPassword.Response,
+    AxiosResponse<Api.Auth.ResetPassword.Response>
+  >("/auth/reset-password", payload).then((res) => res.data);
+};
+
 export const logoutService = async (): Promise<Api.Auth.Logout.Response> => {
   return AxiosConfig.post<
     Api.Auth.Logout.Response,

@@ -20,4 +20,17 @@ export namespace Auth {
       password: string;
     }
   }
+
+  export namespace ForgotPassword {
+    export interface Request {
+      email: string;
+    }
+  }
+
+  export namespace ResetPassword {
+    export interface Request {
+      token: string;
+      password: string;
+    }
+  }
 }

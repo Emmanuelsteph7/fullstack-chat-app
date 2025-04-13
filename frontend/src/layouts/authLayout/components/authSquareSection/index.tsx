@@ -1,11 +1,8 @@
 import cs from "classnames";
+import useAuthSquareBoxes from "../../hooks/useAuthSquareBoxes";
 
-interface Props {
-  title: string;
-  paragraph: string;
-}
-
-const AuthSquareBoxes = ({ paragraph, title }: Props) => {
+const AuthSquareBoxes = () => {
+  const { paragraph, title } = useAuthSquareBoxes();
   return (
     <div className="hidden flex-1 h-full lg:flex items-center bg-base-200">
       <div className="max-w-[300px] xl:max-w-[400px] mx-auto">

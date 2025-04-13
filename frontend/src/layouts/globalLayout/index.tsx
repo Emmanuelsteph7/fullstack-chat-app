@@ -18,7 +18,7 @@ const GlobalLayout = () => {
     <>
       <Loader show={isGetProfileLoading} showBg variant="fixed" />
       <Suspense>
-        <ToastContainer position="bottom-center" />
+        <ToastContainer position="bottom-right" />
         <Outlet />
       </Suspense>
     </>
