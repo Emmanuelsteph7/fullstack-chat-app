@@ -9,10 +9,11 @@ import { Link } from "expo-router";
 import Typography from "@/components/typography";
 
 interface Props {
+  isLoading: boolean;
   formikProps: FormikProps<ILoginForm>;
 }
 
-const LoginFields = ({ formikProps }: Props) => {
+const LoginFields = ({ formikProps, isLoading }: Props) => {
   const { handleSubmit } = formikProps;
 
   return (
@@ -44,7 +45,7 @@ const LoginFields = ({ formikProps }: Props) => {
         </Typography>
       </Link>
       <View className="mt-5">
-        <Button label="Sign in" onPress={handleSubmit} />
+        <Button label="Sign in" isLoading={isLoading} onPress={handleSubmit} />
       </View>
     </View>
   );

@@ -1,14 +1,8 @@
-import { StyleSheet, Text, View } from "react-native";
 import React from "react";
+import DashboardScreen from "@/screens/protected/dashboard";
 
 const Dashboard = () => {
-  return (
-    <View>
-      <Text>Dashboard</Text>
-    </View>
-  );
+  return <DashboardScreen />;
 };
 
 export default Dashboard;
-
-const styles = StyleSheet.create({});

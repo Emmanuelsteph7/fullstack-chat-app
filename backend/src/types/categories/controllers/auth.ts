@@ -24,6 +24,14 @@ export namespace Auth {
   export namespace ForgotPassword {
     export interface Request {
       email: string;
+      type?: "mobile";
+    }
+  }
+
+  export namespace VerifyMobileForgotPasswordOtp {
+    export interface Request {
+      email: string;
+      otp: string;
     }
   }
 
@@ -31,6 +39,13 @@ export namespace Auth {
     export interface Request {
       token: string;
       password: string;
+    }
+  }
+
+  export namespace ResetPasswordOtp {
+    export interface Request {
+      password: string;
+      email: string;
     }
   }
 }

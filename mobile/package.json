@@ -9,10 +9,15 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "eas:build:configure": "eas build:configure",
+    "eas:build:android": "eas build --platform android --profile development",
+    "eas:build:ios-simulator": "eas build --platform ios --profile ios-simulator"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
+    "@gorhom/bottom-sheet": "^5",
+    "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-navigation/bottom-tabs": "^7.3.10",
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.6",
@@ -21,6 +26,7 @@
     "expo": "~53.0.4",
     "expo-blur": "~14.1.4",
     "expo-constants": "~17.1.4",
+    "expo-dev-client": "~5.1.8",
     "expo-font": "~13.3.0",
     "expo-haptics": "~14.1.4",
     "expo-image": "~2.1.6",
@@ -37,6 +43,7 @@
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-native": "0.79.1",
+    "react-native-confirmation-code-field": "^7.4.0",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-reanimated": "^3.17.5",
     "react-native-safe-area-context": "5.3.0",

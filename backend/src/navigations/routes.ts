@@ -5,7 +5,9 @@ export enum Path {
   SignUp = "/auth/signup",
   Login = "/auth/login",
   ForgotPassword = "/auth/forgot-password",
+  VerifyForgotPasswordOtp = "/auth/forgot-password/verify-otp",
   ResetPassword = "/auth/reset-password",
+  ResetPasswordOtp = "/auth/reset-password-otp",
   Logout = "/auth/logout",
   VerifyOtp = "/auth/verify-otp",
 

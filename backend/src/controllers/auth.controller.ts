@@ -51,13 +51,24 @@ export const signUpController = catchAsyncErrors(
         password: hashedPassword,
       });
 
+      const previousOTP = await OtpModel.findOne({ email });
       const otp = generateOtp();
 
-      await OtpModel.create({
-        email,
-        otp,
-        expiresAt: new Date(Date.now() + DURATION_5_MIN),
-      });
+      if (!previousOTP) {
+        await OtpModel.create({
+          email,
+          otp,
+          expiresAt: new Date(Date.now() + DURATION_5_MIN),
+        });
+      } else {
+        await OtpModel.findOneAndUpdate(
+          { email },
+          {
+            otp,
+            expiresAt: new Date(Date.now() + DURATION_5_MIN),
+          }
+        );
+      }
 
       await sendMail({
         html: otpTemplate({ name, otp }),
@@ -238,7 +249,8 @@ export const loginController = catchAsyncErrors(
 export const forgotPasswordController = catchAsyncErrors(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { email } = req.body as Api.Controllers.Auth.ForgotPassword.Request;
+      const { email, type } =
+        req.body as Api.Controllers.Auth.ForgotPassword.Request;
 
       if (!email) {
         return next(new ErrorHandler("Please enter all fields", 400));
@@ -252,21 +264,111 @@ export const forgotPasswordController = catchAsyncErrors(
         return next(new ErrorHandler("User does not exist", 400));
       }
 
-      const token = generateToken(email as string, DURATION_20_MIN_IN_SECONDS);
-      const resetPasswordLink = `${WEBSITE_ORIGIN}/reset-password/${token}`;
+      if (type === "mobile") {
+        const previousOTP = await OtpModel.findOne({ email });
+        const otp = generateOtp();
 
-      await sendMail({
-        html: forgotPasswordTemplate({
-          name: userWithThisEmail.name,
-          resetLink: resetPasswordLink,
-        }),
-        subject: "Eming Chat",
-        to: email,
-      });
+        if (!previousOTP) {
+          await OtpModel.create({
+            email,
+            otp,
+            expiresAt: new Date(Date.now() + DURATION_5_MIN),
+          });
+        } else {
+          await OtpModel.findOneAndUpdate(
+            { email },
+            {
+              otp,
+              expiresAt: new Date(Date.now() + DURATION_5_MIN),
+            }
+          );
+        }
+
+        await sendMail({
+          html: otpTemplate({ name: "", otp }),
+          subject: "Eming Chat",
+          to: email,
+        });
+
+        sendResponse({
+          message: "An OTP has been sent to your email.",
+          res,
+        });
+      } else {
+        const token = generateToken(
+          email as string,
+          DURATION_20_MIN_IN_SECONDS
+        );
+        const resetPasswordLink = `${WEBSITE_ORIGIN}/reset-password/${token}`;
+
+        await sendMail({
+          html: forgotPasswordTemplate({
+            name: userWithThisEmail.name,
+            resetLink: resetPasswordLink,
+          }),
+          subject: "Eming Chat",
+          to: email,
+        });
+
+        sendResponse({
+          message: "An email has been sent with a link to reset your password.",
+          res,
+        });
+      }
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  }
+);
+
+export const verifyForgotPasswordOtpController = catchAsyncErrors(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { email, otp } =
+        req.body as Api.Controllers.Auth.VerifyMobileForgotPasswordOtp.Request;
+
+      if (!email || !otp) {
+        return next(new ErrorHandler("Please enter all fields", 400));
+      }
+
+      if (otp.length !== 6) {
+        return next(
+          new ErrorHandler("OTP should be at least 6 characters", 400)
+        );
+      }
+
+      const otpInDB = await OtpModel.findOne({ email });
+
+      if (!otpInDB) {
+        return next(new ErrorHandler("Invalid OTP request", 400));
+      }
+
+      if (otpInDB.otp?.toString() !== otp) {
+        return next(new ErrorHandler("Invalid OTP", 400));
+      }
+
+      const expiryTime = otpInDB?.expiresAt;
+      const isOtpExpired = expiryTime?.getTime() < new Date()?.getTime();
+
+      if (isOtpExpired) {
+        await OtpModel.findOneAndDelete({ email });
+        return next(
+          new ErrorHandler("OTP expired. Kindly request a new OTP", 400)
+        );
+      }
+
+      const userWithThisEmail = await UserModel.findOne({ email });
+
+      if (!userWithThisEmail) {
+        return next(new ErrorHandler("No user found with this email", 400));
+      }
+
+      await OtpModel.findOneAndDelete({ email });
 
       sendResponse({
-        message: "An email has been sent with a link to reset your password.",
+        message: "Email verified. Proceed to reset your password",
         res,
+        status: 200,
       });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 500));
@@ -309,6 +411,51 @@ export const resetPasswordController = catchAsyncErrors(
         }),
         subject: "Eming Chat",
         to: decoded.id,
+      });
+
+      sendResponse({
+        message: "Your password reset was successful.",
+        res,
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  }
+);
+
+export const resetPasswordOtpController = catchAsyncErrors(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { email, password } =
+        req.body as Api.Controllers.Auth.ResetPasswordOtp.Request;
+
+      if (!password || !email) {
+        return next(new ErrorHandler("Please enter all fields", 400));
+      }
+
+      if (password.length < 6) {
+        return next(
+          new ErrorHandler("Password should be at least 6 characters", 400)
+        );
+      }
+
+      const userWithThisEmail = await UserModel.findOne({ email });
+
+      if (!userWithThisEmail) {
+        return next(new ErrorHandler("User does not exist", 400));
+      }
+
+      const hashedPassword = await hashPassword(password);
+
+      userWithThisEmail.password = hashedPassword;
+      await userWithThisEmail.save();
+
+      await sendMail({
+        html: passwordResetSuccessTemplate({
+          name: userWithThisEmail.name,
+        }),
+        subject: "Eming Chat",
+        to: email,
       });
 
       sendResponse({

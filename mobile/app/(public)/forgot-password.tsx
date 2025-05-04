@@ -1,14 +1,8 @@
-import { StyleSheet, Text, View } from "react-native";
 import React from "react";
+import ForgotPasswordScreen from "@/screens/public/forgotPassword";
 
 const ForgotPassword = () => {
-  return (
-    <View>
-      <Text>ForgotPassword</Text>
-    </View>
-  );
+  return <ForgotPasswordScreen />;
 };
 
 export default ForgotPassword;
-
-const styles = StyleSheet.create({});

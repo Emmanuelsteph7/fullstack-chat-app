@@ -61,7 +61,7 @@ const Typography = ({
           className={cs(baseClass, {
             [`${className}`]: className,
           })}
-          style={{ fontFamily: fontFamily[weight] }}
+          style={[{ fontFamily: fontFamily[weight] }, otherProps.style]}
           entering={entering}
           exiting={exiting}
         >
@@ -75,7 +75,7 @@ const Typography = ({
           className={cs(baseClass, {
             [`${className}`]: className,
           })}
-          style={{ fontFamily: fontFamily[weight] }}
+          style={[{ fontFamily: fontFamily[weight] }, otherProps.style]}
         >
           {children}
         </Text>

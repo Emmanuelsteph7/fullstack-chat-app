@@ -29,6 +29,8 @@ const CustomStatusBar = ({
     colorScheme === "dark" ? colors["color-dark"] : statusBarColor;
   const _backgroundColor =
     colorScheme === "dark" ? colors["color-dark"] : backgroundColor;
+  const _statusBarStyle =
+    colorScheme === "dark" ? "light-content" : statusBarStyle;
 
   return (
     <View
@@ -44,7 +46,7 @@ const CustomStatusBar = ({
       <StatusBar
         backgroundColor={_statusBarColor}
         translucent
-        barStyle={statusBarStyle}
+        barStyle={_statusBarStyle}
       />
       <View className="flex-1" style={{ backgroundColor: _backgroundColor }}>
         {children}

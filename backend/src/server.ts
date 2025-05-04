@@ -5,7 +5,7 @@ import errorMiddleware from "./middlewares/errors";
 import Logging from "./library/logs";
 import { generalConfig } from "./config/generalConfig";
 import { allRoutes } from "./config/allRoutes";
-import { PORT } from "./constants";
+import { NODE_ENV, PORT } from "./constants";
 import { cloudinaryConfig } from "./config/cloudinary";
 import { app, server } from "./config/socket";
 
@@ -31,7 +31,17 @@ app.all("*", (req: Request, res: Response, next: NextFunction) => {
 /**
  * Create server
  */
-server.listen(PORT || 8000, () => {
-  Logging.info(`Server started on port ${PORT}`);
-  connectDB();
-});
+
+/** Added this because of mobile testing */
+if (NODE_ENV === "development") {
+  // @ts-ignore
+  server.listen(PORT || 8000, "0.0.0.0", () => {
+    Logging.info(`Server started on port ${PORT}`);
+    connectDB();
+  });
+} else {
+  server.listen(PORT || 8000, () => {
+    Logging.info(`Server started on port ${PORT}`);
+    connectDB();
+  });
+}

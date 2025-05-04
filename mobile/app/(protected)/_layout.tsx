@@ -1,7 +1,6 @@
-import { StyleSheet, Text, View } from "react-native";
 import React from "react";
 import { useAuthStore } from "@/store/useAuthStore";
-import { Redirect } from "expo-router";
+import { Redirect, Stack } from "expo-router";
 
 const ProtectedLayout = () => {
   const { isAuthenticated } = useAuthStore();
@@ -11,9 +10,12 @@ const ProtectedLayout = () => {
   }
 
   return (
-    <View>
-      <Text>ProtectedLayout</Text>
-    </View>
+    <Stack
+      screenOptions={{ headerShown: false, animation: "slide_from_right" }}
+      initialRouteName="index"
+    >
+      <Stack.Screen name="index" />
+    </Stack>
   );
 };
 
